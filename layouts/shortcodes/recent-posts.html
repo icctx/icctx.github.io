@@ -1,0 +1,19 @@
+{{- $limit := int (.Get "limit" | default "5") -}}
+{{- $posts := first $limit (where site.RegularPages.ByDate.Reverse "Section" "blog") -}}
+
+<ul class="blog-posts">
+  {{- range $posts }}
+  <li>
+    <span>
+      <i>
+        <time datetime='{{ .Date.Format "2006-01-02" }}'>
+          {{ .Date.Format (default "02 Jan, 2006" .Site.Params.dateFormat) }}
+        </time>
+      </i>
+    </span>
+    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+  </li>
+  {{- else }}
+  <li>No posts yet</li>
+  {{- end }}
+</ul>
