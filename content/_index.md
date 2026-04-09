@@ -9,7 +9,7 @@ weight = 1
 ---
 The blog is under construction.
 
-discord: *noticctx*  
+discord: *icctxp*  
 github:  [>> click me <<](https://github.com/icctx)
 ## Recent posts
 
