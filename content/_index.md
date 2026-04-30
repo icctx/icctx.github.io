@@ -7,11 +7,12 @@ weight = 1
 # Welcome!
 
 ---
-The blog is under construction.
+Hello, I'm **icctx** / **shyguy**, a security researcher.
 
 discord: *icctxp*  
 github:  [>> click me <<](https://github.com/icctx)
-## Recent posts
+
+## The last 5 posts:
 
 {{< recent-posts limit="5" >}}
 

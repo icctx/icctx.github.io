@@ -2,25 +2,25 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on </title>
-    <link>http://localhost:36945/tags/</link>
+    <link>http://localhost:1313/tags/</link>
     <description>Recent content in Tags on </description>
     <generator>Hugo</generator>
     <language>en-US</language>
     <copyright>Copyright © 2026, icctx.</copyright>
     <lastBuildDate>Fri, 03 Jan 2020 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:36945/tags/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Markdown</title>
-      <link>http://localhost:36945/tags/markdown/</link>
+      <link>http://localhost:1313/tags/markdown/</link>
       <pubDate>Fri, 03 Jan 2020 00:00:00 +0000</pubDate>
-      <guid>http://localhost:36945/tags/markdown/</guid>
+      <guid>http://localhost:1313/tags/markdown/</guid>
       <description></description>
     </item>
     <item>
       <title>Syntax</title>
-      <link>http://localhost:36945/tags/syntax/</link>
+      <link>http://localhost:1313/tags/syntax/</link>
       <pubDate>Fri, 03 Jan 2020 00:00:00 +0000</pubDate>
-      <guid>http://localhost:36945/tags/syntax/</guid>
+      <guid>http://localhost:1313/tags/syntax/</guid>
       <description></description>
     </item>
   </channel>

