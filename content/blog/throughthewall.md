@@ -386,6 +386,5 @@ Full source code can be found [here](https://github.com/icctx/ctf/tree/main/b01l
 
 ---
 # Conclusion
-Hope you enjoyed the post!
-Feel free to reach out if you’ve got any questions.
-The next part will cover a harder "multifiles" challenge (hopefully, I’ll get my hands on writing it soon).
+Hope you enjoyed the post! Feel free to reach out if you’ve got any questions.
+The next part will cover a harder “multifiles” challenge.
