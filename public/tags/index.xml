@@ -7,20 +7,20 @@
     <generator>Hugo</generator>
     <language>en-US</language>
     <copyright>Copyright © 2026, icctx.</copyright>
-    <lastBuildDate>Fri, 03 Jan 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 30 Apr 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Markdown</title>
-      <link>http://localhost:1313/tags/markdown/</link>
-      <pubDate>Fri, 03 Jan 2020 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/markdown/</guid>
+      <title>Kernel</title>
+      <link>http://localhost:1313/tags/kernel/</link>
+      <pubDate>Thu, 30 Apr 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/tags/kernel/</guid>
       <description></description>
     </item>
     <item>
-      <title>Syntax</title>
-      <link>http://localhost:1313/tags/syntax/</link>
-      <pubDate>Fri, 03 Jan 2020 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/syntax/</guid>
+      <title>Pwn</title>
+      <link>http://localhost:1313/tags/pwn/</link>
+      <pubDate>Thu, 30 Apr 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/tags/pwn/</guid>
       <description></description>
     </item>
   </channel>

@@ -22,6 +22,7 @@ enableRobotsTXT = true
   # tags = "/blog/:slug"
 
 [params]
+  enableDarkMode = false
   # The "description" of your website. This is used in the meta data of your generated html.
   # description = ""
 
