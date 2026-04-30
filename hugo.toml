@@ -22,8 +22,6 @@ enableRobotsTXT = true
   # tags = "/blog/:slug"
 
 [params]
-  enableDarkMode = false
-  # The "description" of your website. This is used in the meta data of your generated html.
   # description = ""
 
   # The path to your "favicon". This should be a square (at least 32px x 32px) png-file.
