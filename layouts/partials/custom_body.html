@@ -1,0 +1,29 @@
+<button id="theme-toggle" aria-label="Toggle theme"></button>
+
+<script>
+  (function () {
+    var btn = document.getElementById('theme-toggle');
+    var html = document.documentElement;
+
+    function isDark() {
+      var t = html.getAttribute('data-theme');
+      if (t === 'dark') return true;
+      if (t === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function update() {
+      btn.textContent = isDark() ? '☀' : '☾';
+    }
+
+    update();
+
+    btn.addEventListener('click', function () {
+      var dark = isDark();
+      var next = dark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      update();
+    });
+  })();
+</script>

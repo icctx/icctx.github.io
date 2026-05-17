@@ -54,4 +54,54 @@
   }
 </style>
 
+<script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
+
+<style>
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text-color: #f0f0f0;
+      --heading-color: #fff;
+      --blockquote-color: #e8e8e8;
+    }
+  }
+
+  html[data-theme="dark"] {
+    --background-color: #01242e;
+    --heading-color: #fff;
+    --text-color: #f0f0f0;
+    --link-color: #8cc2dd;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #e8e8e8;
+  }
+
+  html[data-theme="light"] {
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #222;
+  }
+
+  #theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: inherit;
+    opacity: 0.55;
+    z-index: 100;
+    line-height: 1;
+  }
+
+  #theme-toggle:hover {
+    opacity: 1;
+  }
+</style>
+
 <script data-goatcounter="https://goaticctx.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

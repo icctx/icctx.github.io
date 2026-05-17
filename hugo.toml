@@ -58,7 +58,7 @@ enableRobotsTXT = true
 # https://gohugo.io/configuration/markup/#highlight
 [markup]
   [markup.highlight]
-    style = 'friendly'
+    style = 'onedark'
     lineNos = true
     lineNumbersInTable = false
     codeFences = true

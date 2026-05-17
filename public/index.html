@@ -2,7 +2,7 @@
 <html lang="en-US">
 
 <head>
-	<meta name="generator" content="Hugo 0.147.7"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+	<meta name="generator" content="Hugo 0.159.0">
   <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,7 +12,7 @@
 <meta name="keywords" content="kernel,pwn," />
 
 
-<meta property="og:url" content="http://localhost:1313/">
+<meta property="og:url" content="https://icctx.xyz/">
   <meta property="og:title" content="Home">
   <meta property="og:description" content="Welcome! Hello, I’m icctx / shyguy, a security researcher.
 discord: icctxp
@@ -20,13 +20,13 @@ github: » click me «
 The last 5 posts: 30 Apr, 2026 b01lers ctf 2026: kernel pwn (part 1) 03 Jan, 2020 Markdown Syntax Guide">
   <meta property="og:locale" content="en_US">
   <meta property="og:type" content="website">
-    <meta property="og:image" content="http://localhost:1313/images/share.png">
+    <meta property="og:image" content="https://icctx.xyz/images/share.png">
 
 
 
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="http://localhost:1313/images/share.png">
+  <meta name="twitter:image" content="https://icctx.xyz/images/share.png">
   <meta name="twitter:title" content="Home">
   <meta name="twitter:description" content="Welcome! Hello, I’m icctx / shyguy, a security researcher.
 discord: icctxp
@@ -44,10 +44,10 @@ The last 5 posts: 30 Apr, 2026 b01lers ctf 2026: kernel pwn (part 1) 03 Jan, 202
   <meta itemprop="datePublished" content="2026-04-30T00:00:00+00:00">
   <meta itemprop="dateModified" content="2026-04-30T00:00:00+00:00">
   <meta itemprop="wordCount" content="36">
-  <meta itemprop="image" content="http://localhost:1313/images/share.png">
+  <meta itemprop="image" content="https://icctx.xyz/images/share.png">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
-  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml" title="" />
+  <link rel="alternate" type="application/rss+xml" href="https://icctx.xyz/index.xml" title="" />
   <style>
   :root {
     --width: 720px;
@@ -257,6 +257,56 @@ The last 5 posts: 30 Apr, 2026 b01lers ctf 2026: kernel pwn (part 1) 03 Jan, 202
   }
 </style>
 
+<script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
+
+<style>
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text-color: #f0f0f0;
+      --heading-color: #fff;
+      --blockquote-color: #e8e8e8;
+    }
+  }
+
+  html[data-theme="dark"] {
+    --background-color: #01242e;
+    --heading-color: #fff;
+    --text-color: #f0f0f0;
+    --link-color: #8cc2dd;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #e8e8e8;
+  }
+
+  html[data-theme="light"] {
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #222;
+  }
+
+  #theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: inherit;
+    opacity: 0.55;
+    z-index: 100;
+    line-height: 1;
+  }
+
+  #theme-toggle:hover {
+    opacity: 1;
+  }
+</style>
+
 <script data-goatcounter="https://goaticctx.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 
@@ -314,7 +364,35 @@ github:  <a href="https://github.com/icctx">&raquo; click me &laquo;</a></p>
   <footer>
 </footer>
 
-  
+  <button id="theme-toggle" aria-label="Toggle theme"></button>
+
+<script>
+  (function () {
+    var btn = document.getElementById('theme-toggle');
+    var html = document.documentElement;
+
+    function isDark() {
+      var t = html.getAttribute('data-theme');
+      if (t === 'dark') return true;
+      if (t === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function update() {
+      btn.textContent = isDark() ? '☀' : '☾';
+    }
+
+    update();
+
+    btn.addEventListener('click', function () {
+      var dark = isDark();
+      var next = dark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      update();
+    });
+  })();
+</script>
 </body>
 
 </html>
