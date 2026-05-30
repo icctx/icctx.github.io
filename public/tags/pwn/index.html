@@ -246,8 +246,18 @@
 <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
 
 <style>
+  :root {
+    --font-scale: 1.1em;
+    --width: 960px;
+  }
+
+  body {
+    padding: 20px 6px;
+  }
+
   @media (prefers-color-scheme: dark) {
     :root {
+      --background-color: #000;
       --text-color: #f0f0f0;
       --heading-color: #fff;
       --blockquote-color: #e8e8e8;
@@ -255,7 +265,7 @@
   }
 
   html[data-theme="dark"] {
-    --background-color: #01242e;
+    --background-color: #000;
     --heading-color: #fff;
     --text-color: #f0f0f0;
     --link-color: #8cc2dd;

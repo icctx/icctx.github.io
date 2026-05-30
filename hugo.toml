@@ -59,6 +59,7 @@ enableRobotsTXT = true
 [markup]
   [markup.highlight]
     style = 'onedark'
+    noClasses = false
     lineNos = true
     lineNumbersInTable = false
     codeFences = true
