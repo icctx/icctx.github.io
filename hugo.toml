@@ -6,7 +6,7 @@ baseURL = "https://icctx.xyz"
 theme = 'hugo-bearblog'
 
 # Basic metadata configuration for your blog.
-title = ""
+title = "icctx"
 author = "icctx"
 copyright = "Copyright © 2026, icctx."
 languageCode = "en-US"
@@ -22,7 +22,7 @@ enableRobotsTXT = true
   # tags = "/blog/:slug"
 
 [params]
-  # description = ""
+  description = "icctx / shyguy — security researcher. CTF writeups: kernel, pwn, and more."
 
   # The path to your "favicon". This should be a square (at least 32px x 32px) png-file.
   # Hint: It's good practise to also put a "favicon.ico"-file into your "static"-folder.
@@ -31,7 +31,7 @@ enableRobotsTXT = true
   # services like Twitter or Slack want to generate a preview of a link to your site.
   # See https://gohugo.io/templates/internal#twitter-cards and
   # https://gohugo.io/templates/internal#open-graph.
-  images = ["images/share.png"]
+  # images = ["images/share.png"]  # embed preview image temporarily disabled
 
   # Another "title" :-). This one is used as the site_name on the Hugo's internal
   # opengraph structured data template.

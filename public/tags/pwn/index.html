@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="en-US">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
   <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pwn | </title>
+<title>Pwn | icctx</title>
 <meta name="title" content="Pwn" />
-<meta name="description" content="" />
+<meta name="description" content="icctx / shyguy — security researcher. CTF writeups: kernel, pwn, and more." />
 <meta name="keywords" content="kernel,pwn," />
 
 
-<meta property="og:url" content="http://localhost:1313/tags/pwn/">
+<meta property="og:url" content="https://icctx.xyz/tags/pwn/">
+	<meta property="og:site_name" content="icctx">
 	<meta property="og:title" content="Pwn">
+	<meta property="og:description" content="icctx / shyguy — security researcher. CTF writeups: kernel, pwn, and more.">
 	<meta property="og:locale" content="en_US">
 	<meta property="og:type" content="website">
-		<meta property="og:image" content="http://localhost:1313/images/share.png">
 
 
 
 
-	<meta name="twitter:card" content="summary_large_image">
-	<meta name="twitter:image" content="http://localhost:1313/images/share.png">
+	<meta name="twitter:card" content="summary">
 	<meta name="twitter:title" content="Pwn">
+	<meta name="twitter:description" content="icctx / shyguy — security researcher. CTF writeups: kernel, pwn, and more.">
 
 
 
 
 	<meta itemprop="name" content="Pwn">
+	<meta itemprop="description" content="icctx / shyguy — security researcher. CTF writeups: kernel, pwn, and more.">
 	<meta itemprop="datePublished" content="2026-05-18T00:00:00+00:00">
 	<meta itemprop="dateModified" content="2026-05-18T00:00:00+00:00">
-	<meta itemprop="image" content="http://localhost:1313/images/share.png">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
-  <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/pwn/index.xml" title="" />
+  <link rel="alternate" type="application/rss+xml" href="https://icctx.xyz/tags/pwn/index.xml" title="icctx" />
   <style>
   :root {
     --width: 720px;
@@ -243,12 +244,103 @@
   }
 </style>
 
+<style>
+   
+  .highlight .chroma,
+  .chroma {
+    background-color: #f7dfe9;
+    color: #3d1228;
+    border: 1px solid #f3c2d6;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+   
+  .chroma .ln,
+  .chroma .lnt {
+    color: #db6fa3;
+    margin-right: 1.1em;
+    padding-right: 0.6em;
+    border-right: 1px solid #ffc9de;
+  }
+  .chroma .hl { background-color: #ffe0ec; }
+
+   
+  .chroma .c, .chroma .ch, .chroma .cm, .chroma .c1, .chroma .cs,
+  .chroma .cp, .chroma .cpf {
+    color: #b25c8a;
+    font-style: italic;
+  }
+
+   
+  .chroma .k, .chroma .kc, .chroma .kd, .chroma .kn, .chroma .kp,
+  .chroma .kr, .chroma .kt, .chroma .nt {
+    color: #e91e8c;
+    font-weight: bold;
+  }
+
+   
+  .chroma .s, .chroma .s1, .chroma .s2, .chroma .sb, .chroma .sc,
+  .chroma .sd, .chroma .se, .chroma .sh, .chroma .si, .chroma .sx,
+  .chroma .sr, .chroma .ss, .chroma .dl {
+    color: #d6336c;
+  }
+
+   
+  .chroma .m, .chroma .mb, .chroma .mf, .chroma .mh, .chroma .mi,
+  .chroma .mo, .chroma .il {
+    color: #e85a96;
+  }
+
+   
+  .chroma .nf, .chroma .nb, .chroma .bp { color: #c2185b; font-weight: bold; }
+
+   
+  .chroma .nc, .chroma .nd, .chroma .nn { color: #8e24aa; font-weight: bold; }
+  .chroma .nv, .chroma .vc, .chroma .vg, .chroma .vi { color: #9c27b0; }
+
+   
+  .chroma .o, .chroma .ow { color: #b3387a; }
+  .chroma .p { color: #a04a72; }
+
+   
+  .chroma .na { color: #d81b60; }
+
+   
+  .chroma .gd { color: #c2185b; background-color: #ffe0ec; }
+  .chroma .gi { color: #2e7d32; background-color: #e6f7e9; }
+</style>
+
 <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
 
 <style>
+   
+  @font-face {
+    font-family: "Input Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/InputMono-Regular.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Input Mono";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/fonts/InputMono-Bold.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Input Mono";
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/InputMono-Italic.woff2") format("woff2");
+  }
+
   :root {
-    --font-scale: 1.1em;
     --width: 960px;
+    --font-main: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-secondary: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
   body {
@@ -308,7 +400,7 @@
 
 <body>
   <header><a href="/" class="title">
-  <h2></h2>
+  <h2>icctx</h2>
 </a>
 <nav>
 <a href="/">Home</a>
@@ -335,7 +427,7 @@
           </time>
         </i>
       </span>
-      <a href="http://localhost:1313/blog/multifiles/">b01lers ctf 2026: kernel pwn (part 2)</a>
+      <a href="https://icctx.xyz/blog/multifiles/">b01lers ctf 2026: kernel pwn (part 2)</a>
     </li>
     
     <li>
@@ -346,7 +438,7 @@
           </time>
         </i>
       </span>
-      <a href="http://localhost:1313/blog/throughthewall/">b01lers ctf 2026: kernel pwn (part 1)</a>
+      <a href="https://icctx.xyz/blog/throughthewall/">b01lers ctf 2026: kernel pwn (part 1)</a>
     </li>
     
   </ul>
