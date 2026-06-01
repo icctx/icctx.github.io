@@ -9,9 +9,7 @@ weight = 1
 ---
 Hello, I'm **icctx** / **shyguy**, a security researcher.
 
-github:  [>> click me <<](https://github.com/icctx)
-twitter: *icctxe*  
-discord: *icctxe*  
+[github](https://github.com/icctx) | [twitter](https://x.com/icctxe) 
 
 ## The last 5 posts:
 
