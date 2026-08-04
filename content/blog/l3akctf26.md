@@ -1,6 +1,6 @@
 +++
 title = "l3ak ctf 2026: pwn writeup (supervisor, piet)"
-date = "2026-08-05"
+date = "2026-08-04"
 description = "Writeups for the supervisor and piet pwn challenges from L3AK CTF 2026."
 tags = [
     "ctf",
@@ -1347,4 +1347,4 @@ The source code for both exploits can be found [here](https://github.com/icctx/c
 ---
 # Conclusion
 Thanks for reading this far! 
-I had a good weekend playing this ctf, thanks to the [L3ak Team](https://l3ak.team).
+I had a good weekend playing this CTF, thanks to the [L3AK Team](https://l3ak.team).
