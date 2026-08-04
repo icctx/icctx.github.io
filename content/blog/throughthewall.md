@@ -1,10 +1,11 @@
 +++
-title = "b01lers ctf 2026: kernel pwn (part 1)"
+title = "b01lers ctf 2026: kernel pwn writeup, pt1 (throughthewall)"
 date = "2026-04-30"
 description = "Writeup for kernel pwn challenge from b01lers ctf 2026."
 tags = [
-    "kernel",
+    "ctf",
     "pwn",
+    "kernel",
 ]
 +++
 # Intro

@@ -8,7 +8,7 @@
 <title>Blog | icctx</title>
 <meta name="title" content="Blog" />
 <meta name="description" content="icctx / shyguy — security researcher. CTF writeups: kernel, pwn, and more." />
-<meta name="keywords" content="kernel,pwn," />
+<meta name="keywords" content="ctf,kernel,pwn," />
 
 
 <meta property="og:url" content="http://localhost:1313/blog/">
@@ -256,6 +256,35 @@
   }
 
    
+  :not(pre) > code {
+    font-family: "Nimbus Mono PS", "Courier New", Courier, monospace;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.05em;
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+   
+  pre:not(.chroma) {
+    background-color: #f7dfe9;
+    color: #3d1228;
+    border: 1px solid #f3c2d6;
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+  }
+
+  pre:not(.chroma) code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+   
   .chroma .ln,
   .chroma .lnt {
     color: #db6fa3;
@@ -314,33 +343,10 @@
 <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
 
 <style>
-   
-  @font-face {
-    font-family: "Input Mono";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/InputMono-Regular.woff2") format("woff2");
-  }
-  @font-face {
-    font-family: "Input Mono";
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url("/fonts/InputMono-Bold.woff2") format("woff2");
-  }
-  @font-face {
-    font-family: "Input Mono";
-    font-style: italic;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/InputMono-Italic.woff2") format("woff2");
-  }
-
   :root {
     --width: 960px;
-    --font-main: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --font-secondary: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-main: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-secondary: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
   body {
@@ -422,7 +428,7 @@
           </time>
         </i>
       </span>
-      <a href="http://localhost:1313/blog/multifiles/">b01lers ctf 2026: kernel pwn (part 2)</a>
+      <a href="http://localhost:1313/blog/multifiles/">b01lers ctf 2026: kernel pwn writeup, pt2 (multifiles)</a>
     </li>
     
     <li>
@@ -433,7 +439,7 @@
           </time>
         </i>
       </span>
-      <a href="http://localhost:1313/blog/throughthewall/">b01lers ctf 2026: kernel pwn (part 1)</a>
+      <a href="http://localhost:1313/blog/throughthewall/">b01lers ctf 2026: kernel pwn writeup, pt1 (throughthewall)</a>
     </li>
     
     <li>
@@ -451,6 +457,8 @@
   
   <small>
     <div>
+      
+      <a href="http://localhost:1313/tags/ctf/">#Ctf</a>&nbsp;
       
       <a href="http://localhost:1313/tags/kernel/">#Kernel</a>&nbsp;
       

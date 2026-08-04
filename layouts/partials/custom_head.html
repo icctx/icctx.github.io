@@ -65,6 +65,37 @@
     padding: 14px 16px;
   }
 
+  /* inline `code`: a second mono face, distinct from the Input Mono body text.
+     font-size stays explicit — the bare `monospace` keyword the theme sets makes
+     browsers use their fixed-width default size (~13px) instead of inheriting */
+  :not(pre) > code {
+    font-family: "Nimbus Mono PS", "Courier New", Courier, monospace;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.05em;
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+  /* fenced blocks without a language: Hugo skips Chroma, so no .chroma here */
+  pre:not(.chroma) {
+    background-color: #f7dfe9;
+    color: #3d1228;
+    border: 1px solid #f3c2d6;
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+  }
+
+  pre:not(.chroma) code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
   /* line numbers */
   .chroma .ln,
   .chroma .lnt {
@@ -124,33 +155,10 @@
 <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
 
 <style>
-  /* Input Mono — self-hosted, drop the woff2 files into static/fonts/ */
-  @font-face {
-    font-family: "Input Mono";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/InputMono-Regular.woff2") format("woff2");
-  }
-  @font-face {
-    font-family: "Input Mono";
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url("/fonts/InputMono-Bold.woff2") format("woff2");
-  }
-  @font-face {
-    font-family: "Input Mono";
-    font-style: italic;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/InputMono-Italic.woff2") format("woff2");
-  }
-
   :root {
     --width: 960px;
-    --font-main: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --font-secondary: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-main: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-secondary: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
   body {

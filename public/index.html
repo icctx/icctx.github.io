@@ -2,14 +2,14 @@
 <html lang="en-US">
 
 <head>
-	<meta name="generator" content="Hugo 0.162.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+	<meta name="generator" content="Hugo 0.164.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
   <meta http-equiv="X-Clacks-Overhead" content="GNU Terry Pratchett" />
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Home | icctx</title>
 <meta name="title" content="Home" />
 <meta name="description" content="icctx / shyguy — security researcher. CTF writeups: kernel, pwn, and more." />
-<meta name="keywords" content="kernel,pwn," />
+<meta name="keywords" content="ctf,kernel,pwn," />
 
 
 <meta property="og:url" content="http://localhost:1313/">
@@ -17,7 +17,7 @@
 	<meta property="og:title" content="Home">
 	<meta property="og:description" content="Welcome! Hello, I’m icctx / shyguy, a security researcher.
 github | twitter
-The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 2026 b01lers ctf 2026: kernel pwn (part 1) 03 Jan, 2020 Markdown Syntax Guide">
+The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn writeup, pt2 (multifiles) 30 Apr, 2026 b01lers ctf 2026: kernel pwn writeup, pt1 (throughthewall) 03 Jan, 2020 Markdown Syntax Guide">
 	<meta property="og:locale" content="en_US">
 	<meta property="og:type" content="website">
 
@@ -28,7 +28,7 @@ The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 202
 	<meta name="twitter:title" content="Home">
 	<meta name="twitter:description" content="Welcome! Hello, I’m icctx / shyguy, a security researcher.
 github | twitter
-The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 2026 b01lers ctf 2026: kernel pwn (part 1) 03 Jan, 2020 Markdown Syntax Guide">
+The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn writeup, pt2 (multifiles) 30 Apr, 2026 b01lers ctf 2026: kernel pwn writeup, pt1 (throughthewall) 03 Jan, 2020 Markdown Syntax Guide">
 
 
 
@@ -36,10 +36,10 @@ The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 202
 	<meta itemprop="name" content="Home">
 	<meta itemprop="description" content="Welcome! Hello, I’m icctx / shyguy, a security researcher.
 github | twitter
-The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 2026 b01lers ctf 2026: kernel pwn (part 1) 03 Jan, 2020 Markdown Syntax Guide">
+The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn writeup, pt2 (multifiles) 30 Apr, 2026 b01lers ctf 2026: kernel pwn writeup, pt1 (throughthewall) 03 Jan, 2020 Markdown Syntax Guide">
 	<meta itemprop="datePublished" content="2026-05-18T00:00:00+00:00">
 	<meta itemprop="dateModified" content="2026-05-18T00:00:00+00:00">
-	<meta itemprop="wordCount" content="42">
+	<meta itemprop="wordCount" content="44">
 <meta name="referrer" content="no-referrer-when-downgrade" />
 
   <link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml" title="icctx" />
@@ -264,6 +264,35 @@ The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 202
   }
 
    
+  :not(pre) > code {
+    font-family: "Nimbus Mono PS", "Courier New", Courier, monospace;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.05em;
+    background: none;
+    padding: 0;
+    border: none;
+  }
+
+   
+  pre:not(.chroma) {
+    background-color: #f7dfe9;
+    color: #3d1228;
+    border: 1px solid #f3c2d6;
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+  }
+
+  pre:not(.chroma) code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+   
   .chroma .ln,
   .chroma .lnt {
     color: #db6fa3;
@@ -322,33 +351,10 @@ The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 202
 <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)})();</script>
 
 <style>
-   
-  @font-face {
-    font-family: "Input Mono";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/InputMono-Regular.woff2") format("woff2");
-  }
-  @font-face {
-    font-family: "Input Mono";
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url("/fonts/InputMono-Bold.woff2") format("woff2");
-  }
-  @font-face {
-    font-family: "Input Mono";
-    font-style: italic;
-    font-weight: 400;
-    font-display: swap;
-    src: url("/fonts/InputMono-Italic.woff2") format("woff2");
-  }
-
   :root {
     --width: 960px;
-    --font-main: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --font-secondary: "Input Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-main: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-secondary: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
   body {
@@ -432,7 +438,7 @@ The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 202
         </time>
       </i>
     </span>
-    <a href="/blog/multifiles/">b01lers ctf 2026: kernel pwn (part 2)</a>
+    <a href="/blog/multifiles/">b01lers ctf 2026: kernel pwn writeup, pt2 (multifiles)</a>
   </li>
   <li>
     <span>
@@ -442,7 +448,7 @@ The last 5 posts: 18 May, 2026 b01lers ctf 2026: kernel pwn (part 2) 30 Apr, 202
         </time>
       </i>
     </span>
-    <a href="/blog/throughthewall/">b01lers ctf 2026: kernel pwn (part 1)</a>
+    <a href="/blog/throughthewall/">b01lers ctf 2026: kernel pwn writeup, pt1 (throughthewall)</a>
   </li>
   <li>
     <span>

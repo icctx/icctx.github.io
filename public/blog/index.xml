@@ -16,14 +16,14 @@
 		
 			<atom:link href="http://localhost:1313/blog/index.xml" rel="self" type="application/rss+xml" />
 			<item>
-				<title>b01lers ctf 2026: kernel pwn (part 2)</title>
+				<title>b01lers ctf 2026: kernel pwn writeup, pt2 (multifiles)</title>
 				<link>http://localhost:1313/blog/multifiles/</link>
 				<pubDate>Mon, 18 May 2026 00:00:00 +0000</pubDate>
 				<guid>http://localhost:1313/blog/multifiles/</guid>
 				<description>&lt;h1 id=&#34;intro&#34;&gt;Intro&lt;/h1&gt;&#xA;&lt;p&gt;Previously I wrote a writeup on the first kernel challenge from this CTF — if you haven&amp;rsquo;t read it yet, I recommend starting with &lt;a href=&#34;https://icctx.xyz/blog/throughthewall/&#34;&gt;Part 1&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;p&gt;This post covers &lt;strong&gt;multifiles&lt;/strong&gt;, the second kernel pwn challenge.&lt;/p&gt;&#xA;&lt;p&gt;Since I&amp;rsquo;m releasing this a bit late: in Part 1 I reimplemented the exploit from scratch in Rust to cover every step, but this time you&amp;rsquo;ll get a refactored version of the original C exploit instead.&lt;/p&gt;</description>
 			</item>
 			<item>
-				<title>b01lers ctf 2026: kernel pwn (part 1)</title>
+				<title>b01lers ctf 2026: kernel pwn writeup, pt1 (throughthewall)</title>
 				<link>http://localhost:1313/blog/throughthewall/</link>
 				<pubDate>Thu, 30 Apr 2026 00:00:00 +0000</pubDate>
 				<guid>http://localhost:1313/blog/throughthewall/</guid>
