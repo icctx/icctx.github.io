@@ -18,9 +18,9 @@ i’m **icctx**.<br>
 </style>
 <p style="margin-bottom:0;">links:</p>
 <ul style="list-style:none; padding-left:0; margin:0;">
-<li>&gt; <a href="https://github.com/icctx">github.com/icctx</a></li>
+<li>&gt; <a href="https://github.com/icctx" target="_blank" rel="noopener">github.com/icctx</a></li>
 <li>&gt; <a class="discord-copy" href="#" data-copy="icctxe" onclick="navigator.clipboard.writeText(this.dataset.copy);var h=this.querySelector('.hint');var o=h.textContent;h.textContent='(copied)';setTimeout(function(){h.textContent=o},1200);return false;"><span>discord: icctxe</span> <span class="hint">(copy on click)</span></a></li>
-<li>&gt; <a href="https://x.com/icctxe">x.com/icctxe</a></li>
+<li>&gt; <a href="https://x.com/icctxe" target="_blank" rel="noopener">x.com/icctxe</a></li>
 </ul>
 
 ---
