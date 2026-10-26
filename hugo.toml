@@ -57,6 +57,8 @@ enableRobotsTXT = true
 # Configure markup highlighter to match "Bearblog" aesthetics, see
 # https://gohugo.io/configuration/markup/#highlight
 [markup]
+  [markup.goldmark.renderer]
+    unsafe = true
   [markup.highlight]
     style = 'onedark'
     noClasses = false
